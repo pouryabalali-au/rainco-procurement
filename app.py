@@ -1,5 +1,4 @@
 import streamlit as st
-import streamlit.components.v1 as components
 import pandas as pd
 import json
 import os
@@ -12,173 +11,178 @@ from calculations import calculate_procurement
 
 st.set_page_config(
     page_title="RainCo Procurement",
-    page_icon="🌿",
+    page_icon="https://rainco.com.au/cdn/shop/files/Dark_Slate_Green_Logo.png",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Inject CSS via component (most reliable method)
-components.html("""
+st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --green: #344d47;
-    --green-dark: #263a35;
-    --black: #1c1c1c;
-    --white: #ffffff;
-    --off-white: #f8f8f6;
-    --border: #dddddd;
+  html, body, [class*="css"], .stApp {
+    font-family: 'Poppins', sans-serif !important;
+    font-weight: 300;
+    background-color: #f8f8f6;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Playfair Display', serif !important;
+    font-weight: 400 !important;
+    color: #1c1c1c !important;
+  }
+  /* Sidebar */
+  section[data-testid="stSidebar"] {
+    background-color: #ffffff !important;
+    border-right: 1px solid #e0e0dc !important;
+  }
+  section[data-testid="stSidebar"] * {
+    font-family: 'Poppins', sans-serif !important;
+  }
+  /* Buttons */
+  .stButton > button {
+    background-color: #344d47 !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 0 !important;
+    font-family: 'Poppins', sans-serif !important;
+    font-size: 0.72rem !important;
+    font-weight: 400 !important;
+    letter-spacing: 0.15em !important;
+    text-transform: uppercase !important;
+    padding: 0.5rem 1.2rem !important;
+  }
+  .stButton > button:hover {
+    background-color: #263a35 !important;
+  }
+  .stDownloadButton > button {
+    background-color: transparent !important;
+    color: #344d47 !important;
+    border: 1px solid #344d47 !important;
+    border-radius: 0 !important;
+    font-family: 'Poppins', sans-serif !important;
+    font-size: 0.72rem !important;
+    font-weight: 400 !important;
+    letter-spacing: 0.15em !important;
+    text-transform: uppercase !important;
+  }
+  .stDownloadButton > button:hover {
+    background-color: #344d47 !important;
+    color: #ffffff !important;
+  }
+  /* Metrics */
+  [data-testid="stMetric"] {
+    background-color: #ffffff !important;
+    border: 1px solid #e0e0dc !important;
+    padding: 1rem 1.2rem !important;
+    border-radius: 0 !important;
+  }
+  [data-testid="stMetricLabel"] {
+    font-family: 'Poppins', sans-serif !important;
+    font-size: 0.62rem !important;
+    font-weight: 400 !important;
+    letter-spacing: 0.18em !important;
+    text-transform: uppercase !important;
+    color: #344d47 !important;
+  }
+  [data-testid="stMetricValue"] {
+    font-family: 'Playfair Display', serif !important;
+    font-size: 1.9rem !important;
+    font-weight: 400 !important;
+    color: #1c1c1c !important;
+  }
+  /* Inputs */
+  .stTextInput input, .stNumberInput input {
+    border-radius: 0 !important;
+    border-color: #e0e0dc !important;
+    font-family: 'Poppins', sans-serif !important;
+    font-size: 0.85rem !important;
+  }
+  .stMultiSelect [data-baseweb="select"] {
+    border-radius: 0 !important;
+  }
+  /* Dataframe */
+  .stDataFrame {
+    border: 1px solid #e0e0dc !important;
+  }
+  /* Hide Streamlit chrome */
+  #MainMenu, footer, header { visibility: hidden; }
+  .block-container { padding-top: 2rem !important; }
+  hr { border: none !important; border-top: 1px solid #e0e0dc !important; margin: 1rem 0 !important; }
+  /* Sidebar labels */
+  .sidebar-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #344d47;
+    font-family: 'Poppins', sans-serif;
+    margin-bottom: 4px;
+    margin-top: 12px;
+    display: block;
   }
 </style>
-<script>
-  // Inject fonts + styles into parent Streamlit frame
-  const parent = window.parent.document;
-  if (!parent.getElementById('rainco-styles')) {
-    const link = parent.createElement('link');
-    link.id = 'rainco-fonts';
-    link.rel = 'stylesheet';
-    link.href = 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=Poppins:wght@300;400;500&display=swap';
-    parent.head.appendChild(link);
+""", unsafe_allow_html=True)
 
-    const style = parent.createElement('style');
-    style.id = 'rainco-styles';
-    style.textContent = `
-      html, body, [class*="css"] {
-        font-family: 'Poppins', sans-serif !important;
-        font-weight: 300;
-      }
-      h1, h2, h3 {
-        font-family: 'Playfair Display', serif !important;
-        font-weight: 400 !important;
-        letter-spacing: 0.05em !important;
-        color: #1c1c1c !important;
-      }
-      section[data-testid="stSidebar"] {
-        background-color: #f8f8f6 !important;
-        border-right: 1px solid #dddddd !important;
-      }
-      div[data-testid="stButton"] > button[kind="primary"] {
-        background-color: #344d47 !important;
-        color: #ffffff !important;
-        border: none !important;
-        border-radius: 0 !important;
-        font-family: 'Poppins', sans-serif !important;
-        font-size: 0.75rem !important;
-        font-weight: 400 !important;
-        letter-spacing: 0.12em !important;
-        text-transform: uppercase !important;
-      }
-      div[data-testid="stButton"] > button[kind="primary"]:hover {
-        background-color: #263a35 !important;
-      }
-      div[data-testid="stButton"] > button:not([kind="primary"]),
-      div[data-testid="stDownloadButton"] > button {
-        background-color: transparent !important;
-        color: #344d47 !important;
-        border: 1px solid #344d47 !important;
-        border-radius: 0 !important;
-        font-family: 'Poppins', sans-serif !important;
-        font-size: 0.75rem !important;
-        font-weight: 400 !important;
-        letter-spacing: 0.12em !important;
-        text-transform: uppercase !important;
-      }
-      div[data-testid="stButton"] > button:not([kind="primary"]):hover,
-      div[data-testid="stDownloadButton"] > button:hover {
-        background-color: #344d47 !important;
-        color: #ffffff !important;
-      }
-      div[data-testid="stMetric"] {
-        background-color: #f8f8f6 !important;
-        border: 1px solid #dddddd !important;
-        padding: 1rem 1.2rem !important;
-        border-radius: 0 !important;
-      }
-      div[data-testid="stMetric"] label {
-        font-family: 'Poppins', sans-serif !important;
-        font-size: 0.65rem !important;
-        font-weight: 400 !important;
-        letter-spacing: 0.15em !important;
-        text-transform: uppercase !important;
-        color: #344d47 !important;
-      }
-      div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
-        font-family: 'Playfair Display', serif !important;
-        font-size: 1.8rem !important;
-        font-weight: 400 !important;
-        color: #1c1c1c !important;
-      }
-      span[data-baseweb="tag"] {
-        background-color: #344d47 !important;
-        border-radius: 0 !important;
-      }
-      div[data-baseweb="input"] input,
-      div[data-baseweb="select"] {
-        border-radius: 0 !important;
-        font-family: 'Poppins', sans-serif !important;
-      }
-      hr { border: none !important; border-top: 1px solid #dddddd !important; }
-      #MainMenu, footer { visibility: hidden; }
-    `;
-    parent.head.appendChild(style);
-  }
-</script>
-""", height=0)
-
-
-@st.cache_data(ttl=3600, show_spinner=False)
-def fetch_all_data():
-    products = get_products()
-    inventory = get_inventory_levels()
-    orders = get_orders_last_90_days()
-    pos = get_purchase_orders()
-    sales = build_sales_by_variant(orders)
-    on_order = build_on_order_by_sku(pos)
-    fetched_at = datetime.now().strftime("%d %b %Y %H:%M")
-    return products, inventory, sales, on_order, fetched_at
-
-STATUS_EMOJI  = {"critical": "🔴", "order_soon": "🟡", "ok": "🟢", "no_sales": "⚪"}
-STATUS_LABEL  = {
-    "critical":   "Critical (< 30 days)",
-    "order_soon": "Order Soon (30–60 days)",
-    "ok":         "OK (> 60 days)",
-    "no_sales":   "No Sales (90 days)",
+STATUS_EMOJI = {"critical": "🔴", "order_soon": "🟡", "ok": "🟢", "no_sales": "⚪"}
+STATUS_LABEL = {
+    "critical":   "🔴 Critical (< 30 days)",
+    "order_soon": "🟡 Order Soon (30–60 days)",
+    "ok":         "🟢 OK (> 60 days)",
+    "no_sales":   "⚪ No Sales (90 days)",
 }
 
-# ── Sidebar ────────────────────────────────────────────────────────────────────
+# ── Sidebar ─────────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.image("https://rainco.com.au/cdn/shop/files/Dark_Slate_Green_Logo.png", width=150)
-    st.markdown("---")
+    st.image("https://rainco.com.au/cdn/shop/files/Dark_Slate_Green_Logo.png", width=140)
+    st.markdown("<hr>", unsafe_allow_html=True)
 
-    if st.button("Sync Data Now", use_container_width=True, type="primary"):
+    if st.button("⟳  Sync Data Now", use_container_width=True):
         st.cache_data.clear()
         st.rerun()
 
-    st.markdown("---")
-    st.markdown("<p style='font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:#344d47;font-family:Poppins,sans-serif;margin-bottom:4px'>Filters</p>", unsafe_allow_html=True)
+    st.markdown("<hr>", unsafe_allow_html=True)
+    st.markdown('<span class="sidebar-label">Filters</span>', unsafe_allow_html=True)
+
     filter_status = st.multiselect(
         "Status", label_visibility="collapsed",
         options=["critical", "order_soon", "ok", "no_sales"],
         default=["critical", "order_soon"],
         format_func=lambda x: STATUS_LABEL[x]
     )
-    filter_type = st.text_input("Product type", placeholder="e.g. Tapware")
-    only_order  = st.checkbox("Only show items to order", value=True)
+    filter_search = st.text_input("Search product", placeholder="Name, SKU or type…")
+    only_order = st.checkbox("Only items to order", value=True)
 
-    st.markdown("---")
-    st.markdown("<p style='font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:#344d47;font-family:Poppins,sans-serif;margin-bottom:4px'>Settings</p>", unsafe_allow_html=True)
+    st.markdown("<hr>", unsafe_allow_html=True)
+    st.markdown('<span class="sidebar-label">Settings</span>', unsafe_allow_html=True)
+
     lead_time  = st.number_input("Lead time (days)", value=120, min_value=1)
     safety     = st.number_input("Safety stock (days)", value=30, min_value=0)
     global_moq = st.number_input("Min. order qty (MOQ)", value=15, min_value=1)
     st.caption(f"Target cover: {lead_time + safety} days")
 
-# ── Main ───────────────────────────────────────────────────────────────────────
+# ── Header ───────────────────────────────────────────────────────────────────────
 st.markdown("""
-<div style='font-family:"Playfair Display",serif;font-size:1.8rem;font-weight:400;letter-spacing:0.05em;color:#1c1c1c;margin-bottom:2px'>Procurement Dashboard</div>
-<div style='font-family:Poppins,sans-serif;font-size:0.7rem;font-weight:400;letter-spacing:0.18em;text-transform:uppercase;color:#344d47;margin-bottom:1.5rem'>Inventory · Orders · Reorder Planning</div>
+<div style='margin-bottom:0.25rem'>
+  <span style='font-family:"Playfair Display",serif;font-size:2rem;font-weight:400;color:#1c1c1c;letter-spacing:0.03em'>
+    Procurement Dashboard
+  </span>
+</div>
+<div style='font-family:Poppins,sans-serif;font-size:0.65rem;font-weight:400;letter-spacing:0.2em;text-transform:uppercase;color:#344d47;margin-bottom:1.5rem'>
+  Inventory · Orders · Reorder Planning
+</div>
 """, unsafe_allow_html=True)
 
-with st.spinner("Loading Shopify data..."):
+# ── Load Data ────────────────────────────────────────────────────────────────────
+@st.cache_data(ttl=3600, show_spinner=False)
+def fetch_all_data():
+    products  = get_products()
+    inventory = get_inventory_levels()
+    orders    = get_orders_last_90_days()
+    pos       = get_purchase_orders()
+    sales     = build_sales_by_variant(orders)
+    on_order  = build_on_order_by_sku(pos)
+    fetched_at = datetime.now().strftime("%d %b %Y, %H:%M")
+    return products, inventory, sales, on_order, fetched_at
+
+with st.spinner("Loading Shopify data…"):
     products, inventory, sales, on_order, fetched_at = fetch_all_data()
 
 import calculations
@@ -189,32 +193,42 @@ calculations.TARGET_COVER_DAYS = lead_time + safety
 rows = calculate_procurement(products, inventory, sales, on_order, global_moq)
 df   = pd.DataFrame(rows)
 
-# ── Metric cards ───────────────────────────────────────────────────────────────
+# ── Metric Cards ─────────────────────────────────────────────────────────────────
 total      = len(df)
 critical   = len(df[df.status == "critical"])
 order_soon = len(df[df.status == "order_soon"])
 to_order   = len(df[df.rec_order > 0])
 
 c1, c2, c3, c4, c5 = st.columns(5)
-c1.metric("Total SKUs",      total)
-c2.metric("Critical",        critical,   help="< 30 days cover")
-c3.metric("Order Soon",      order_soon, help="30–60 days cover")
-c4.metric("SKUs to Order",   to_order)
-c5.metric("Last Synced",     fetched_at)
+c1.metric("Total SKUs",    total)
+c2.metric("🔴 Critical",    critical,   help="Less than 30 days of stock")
+c3.metric("🟡 Order Soon",  order_soon, help="30–60 days of stock")
+c4.metric("To Order",      to_order,   help="SKUs with recommended order qty > 0")
+c5.metric("Last Synced",   fetched_at)
 
-st.markdown("---")
+st.markdown("<hr>", unsafe_allow_html=True)
 
-# ── Filters ────────────────────────────────────────────────────────────────────
+# ── Filters ───────────────────────────────────────────────────────────────────────
 filtered = df.copy()
 if filter_status:
     filtered = filtered[filtered.status.isin(filter_status)]
-if filter_type:
-    filtered = filtered[filtered.type.str.contains(filter_type, case=False, na=False)]
+if filter_search:
+    mask = (
+        filtered.product.str.contains(filter_search, case=False, na=False) |
+        filtered.sku.str.contains(filter_search, case=False, na=False) |
+        filtered.type.str.contains(filter_search, case=False, na=False)
+    )
+    filtered = filtered[mask]
 if only_order:
     filtered = filtered[filtered.rec_order > 0]
 
-# ── Table ──────────────────────────────────────────────────────────────────────
-st.markdown(f"<h3 style='margin-top:0;font-family:\"Playfair Display\",serif;font-weight:400'>Order List <span style='font-family:Poppins,sans-serif;font-size:0.85rem;font-weight:300;color:#666'>({len(filtered)} items)</span></h3>", unsafe_allow_html=True)
+# ── Table ─────────────────────────────────────────────────────────────────────────
+st.markdown(
+    f"<h3 style='margin-top:0;margin-bottom:0.75rem'>Order List "
+    f"<span style='font-family:Poppins,sans-serif;font-size:0.85rem;font-weight:300;color:#888'>"
+    f"({len(filtered)} items)</span></h3>",
+    unsafe_allow_html=True
+)
 
 if filtered.empty:
     st.info("No items match the current filters.")
@@ -222,47 +236,65 @@ else:
     display = filtered[[
         "status", "product", "variant", "sku", "type",
         "on_hand", "on_order", "sold_90d", "avg_daily",
-        "days_cover", "target_stock", "rec_order", "moq"
+        "days_cover", "target_stock", "rec_order"
     ]].copy()
+
     display["status"]    = display["status"].map(STATUS_EMOJI)
     display["avg_daily"] = display["avg_daily"].apply(lambda x: f"{x:.2f}")
-    display.columns = ["", "Product", "Variant", "SKU", "Type",
-                        "On Hand", "On Order", "Sold 90d", "Avg/Day",
-                        "Days Cover", "Target Stock", "Rec. Order", "MOQ"]
+    display["days_cover"] = display["days_cover"].apply(lambda x: x if x < 999 else "—")
+
+    display.columns = [
+        "", "Product", "Variant", "SKU", "Type",
+        "On Hand", "On Order", "Sold 90d", "Avg/Day",
+        "Days Cover", "Target Stock", "Rec. Order"
+    ]
 
     st.dataframe(
-        display, use_container_width=True, hide_index=True,
+        display,
+        use_container_width=True,
+        hide_index=True,
         column_config={
-            "Days Cover":  st.column_config.NumberColumn(format="%d days"),
-            "Rec. Order":  st.column_config.NumberColumn(format="%d units"),
+            "Rec. Order": st.column_config.NumberColumn(format="%d units"),
+            "Target Stock": st.column_config.NumberColumn(format="%d units"),
         }
     )
 
-    st.markdown("---")
-    col1, _ = st.columns([1, 3])
+    st.markdown("<hr>", unsafe_allow_html=True)
+    col1, col2, _ = st.columns([1, 1, 3])
     with col1:
         st.download_button(
-            "Export to CSV",
+            "Export CSV",
             data=filtered.to_csv(index=False).encode(),
             file_name=f"rainco_order_{datetime.now().strftime('%Y%m%d')}.csv",
             mime="text/csv",
             use_container_width=True
         )
+    with col2:
+        # Export only what to order, grouped nicely
+        order_df = filtered[filtered["rec_order"] > 0][[
+            "sku", "product", "variant", "type", "rec_order"
+        ]].copy()
+        order_df.columns = ["SKU", "Product", "Variant", "Type", "Qty to Order"]
+        st.download_button(
+            "Export Order",
+            data=order_df.to_csv(index=False).encode(),
+            file_name=f"rainco_purchase_order_{datetime.now().strftime('%Y%m%d')}.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
 
-# ── (MOQ is a global setting in the sidebar) ──────────────────────────────────
-
-# ── Manual On-Order Overrides ──────────────────────────────────────────────────
-with st.expander("Manual On-Order Overrides"):
-    st.caption("Use this if Shopify PO sync isn't returning data.")
+# ── Manual On-Order Overrides ─────────────────────────────────────────────────────
+with st.expander("Manual On-Order Overrides (if Shopify PO sync is missing data)"):
+    st.caption("Enter SKUs and quantities for any open orders not yet in Shopify.")
     manual_file = "manual_on_order.json"
     manual = json.load(open(manual_file)) if os.path.exists(manual_file) else {}
     manual_df = pd.DataFrame(
         [{"SKU": k, "On Order Qty": v} for k, v in manual.items()] or [{"SKU": "", "On Order Qty": 0}]
     )
     edited_m = st.data_editor(manual_df, use_container_width=True, hide_index=True, num_rows="dynamic")
-    if st.button("Save On-Order Overrides"):
+    if st.button("Save Overrides"):
         new_m = {r["SKU"]: int(r["On Order Qty"]) for _, r in edited_m.iterrows()
                  if r["SKU"] and int(r["On Order Qty"]) > 0}
         with open(manual_file, "w") as f:
             json.dump(new_m, f, indent=2)
-        st.success("Saved! Click Sync Data Now to recalculate.")
+        st.success("Saved. Click 'Sync Data Now' to recalculate.")
