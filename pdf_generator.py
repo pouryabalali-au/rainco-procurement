@@ -105,7 +105,7 @@ def generate_po_pdf(order_rows: list, usd_to_aud: float, po_number: str) -> byte
 
     table_data = [header_row]
     for row in order_rows:
-        sku      = str(row.get("sku", ""))
+        sku      = str(row.get("supplier_sku", "") or row.get("sku", ""))
         product  = str(row.get("product", ""))
         qty      = int(row.get("rec_order", 0))
         cost     = row.get("cost_usd") or 0

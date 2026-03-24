@@ -4,7 +4,7 @@ TARGET_COVER_DAYS = LEAD_TIME_DAYS + SAFETY_STOCK_DAYS  # 150 days
 LOOKBACK_DAYS = 90
 GLOBAL_MOQ = 15
 
-def calculate_procurement(products, inventory_by_inv_id, sales_by_variant_id, on_order_by_sku, global_moq=None, costs_usd=None, usd_to_aud=1.58):
+def calculate_procurement(products, inventory_by_inv_id, sales_by_variant_id, on_order_by_sku, global_moq=None, costs_usd=None, usd_to_aud=1.58, supplier_data=None):
     """
     Build the full procurement table.
     Returns list of dicts, one per variant.
@@ -14,6 +14,9 @@ def calculate_procurement(products, inventory_by_inv_id, sales_by_variant_id, on
 
     if costs_usd is None:
         costs_usd = {}
+
+    if supplier_data is None:
+        supplier_data = {}
 
     rows = []
     for product in products:
@@ -62,7 +65,10 @@ def calculate_procurement(products, inventory_by_inv_id, sales_by_variant_id, on
             else:
                 status = "ok"
 
-            cost_usd = costs_usd.get(inv_item_id)
+            # Supplier data (keyed by RainCo SKU) overrides Shopify cost
+            supp = supplier_data.get(sku, {})
+            supplier_sku = supp.get("supplier_sku", "") or ""
+            cost_usd = supp.get("cost_usd") or costs_usd.get(inv_item_id)
             cost_aud = round(cost_usd * usd_to_aud, 2) if cost_usd else None
             order_value_usd = round(rec_order * cost_usd, 2) if cost_usd and rec_order > 0 else None
             order_value_aud = round(rec_order * cost_aud, 2) if cost_aud and rec_order > 0 else None
@@ -71,6 +77,7 @@ def calculate_procurement(products, inventory_by_inv_id, sales_by_variant_id, on
                 "product_id": product["id"],
                 "variant_id": variant_id,
                 "sku": sku,
+                "supplier_sku": supplier_sku,
                 "product": title,
                 "vendor": vendor,
                 "on_hand": on_hand,
