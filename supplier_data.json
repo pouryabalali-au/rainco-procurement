@@ -79,13 +79,20 @@
     "cost_usd": 9.0,
     "supplier_sku": "JD-MH202F"
   },
+  "AB000080": {
+    "cost_usd": 35.0
+  },
   "AB000081": {
     "cost_usd": 16.0,
     "supplier_sku": "JD-MH109F"
   },
+  "AB000082": {},
   "AB000086": {
     "cost_usd": 11.0,
     "supplier_sku": "JD-S03F"
+  },
+  "AB000087": {
+    "cost_usd": 120.0
   },
   "AB000089": {
     "cost_usd": 7.5,
@@ -130,6 +137,9 @@
   "AB00018": {
     "cost_usd": 52.0,
     "supplier_sku": "JDSB181F"
+  },
+  "AB00021": {
+    "cost_usd": 131.74
   },
   "AB00022": {
     "cost_usd": 35.0,
@@ -231,6 +241,9 @@
     "cost_usd": 58.0,
     "supplier_sku": "JDSK513F"
   },
+  "AB00049": {
+    "cost_usd": 131.74
+  },
   "AB00050": {
     "cost_usd": 52.0,
     "supplier_sku": "JD-SS187RB Minimal"
@@ -267,6 +280,9 @@
     "cost_usd": 15.0,
     "supplier_sku": "JD-M232TS"
   },
+  "BB00002": {
+    "cost_usd": 134.35
+  },
   "BB00003": {
     "cost_usd": 54.0,
     "supplier_sku": "JDWS511TS"
@@ -282,6 +298,18 @@
   "BB000056": {
     "cost_usd": 72.0,
     "supplier_sku": "JD-SB182-1TS"
+  },
+  "BB000058": {
+    "cost_usd": 35.0
+  },
+  "BB00006": {
+    "cost_usd": 120.66
+  },
+  "BB000060": {
+    "cost_usd": 16.0
+  },
+  "BB000067": {
+    "cost_usd": 17.0
   },
   "BB000075": {
     "cost_usd": 11.0,
@@ -375,9 +403,15 @@
     "cost_usd": 11.0,
     "supplier_sku": "JD-S04TS"
   },
+  "BB00015": {
+    "cost_usd": 28.5
+  },
   "BB00016": {
     "cost_usd": 3.5,
     "supplier_sku": "TS"
+  },
+  "BB00024": {
+    "cost_usd": 55.0
   },
   "BB00034": {
     "cost_usd": 17.0,
@@ -386,6 +420,9 @@
   "BBS00898": {
     "cost_usd": 81.0,
     "supplier_sku": "JDWK2003-2-1TS S180"
+  },
+  "BC000052": {
+    "cost_usd": 16.0
   },
   "BC00006": {
     "cost_usd": 11.0,
@@ -471,13 +508,22 @@
     "cost_usd": 52.0,
     "supplier_sku": "JDDS201AR S"
   },
+  "BC000089": {
+    "cost_usd": 32.45
+  },
   "BC00009": {
     "cost_usd": 60.0,
     "supplier_sku": "JD-LB114RS 200mm JDWH52-10RS"
   },
+  "BC000091": {
+    "cost_usd": 40.0
+  },
   "BC000092": {
     "cost_usd": 74.0,
     "supplier_sku": "JD-DR401RRS"
+  },
+  "BC000095": {
+    "cost_usd": 175.0
   },
   "BC00015": {
     "cost_usd": 36.0,
@@ -499,17 +545,36 @@
     "cost_usd": 17.0,
     "supplier_sku": "JD-DB111RS"
   },
+  "BC00028": {
+    "cost_usd": 19.85
+  },
   "BC00032": {
     "cost_usd": 3.5,
+    "excluded": true,
     "supplier_sku": "RS"
   },
   "BN00001": {
     "cost_usd": 138.0,
     "supplier_sku": "JDWS531NS"
   },
+  "BN00003": {
+    "cost_usd": 70.94
+  },
   "BN00004": {
     "cost_usd": 64.0,
     "supplier_sku": "JDWK313PNS"
+  },
+  "BN000052": {
+    "cost_usd": 35.0
+  },
+  "BN000054": {
+    "cost_usd": 16.0
+  },
+  "BN000058": {
+    "cost_usd": 33.0
+  },
+  "BN000086": {
+    "cost_usd": 175.0
   },
   "BN000089": {
     "cost_usd": 11.0,
@@ -603,6 +668,9 @@
     "cost_usd": 11.0,
     "supplier_sku": "JD-S04NS G1 1/2"
   },
+  "BPUW0003": {
+    "cost_usd": 32.45
+  },
   "CSP1": {
     "cost_usd": 3.8,
     "supplier_sku": "-"
@@ -630,6 +698,9 @@
   "GMB000053": {
     "cost_usd": 9.0,
     "supplier_sku": "JD-MH202BS"
+  },
+  "GMB00006": {
+    "cost_usd": 120.66
   },
   "GMB000071": {
     "cost_usd": 11.0,
@@ -691,6 +762,9 @@
     "cost_usd": 56.0,
     "supplier_sku": "JDWK230BS"
   },
+  "GMB000087": {
+    "cost_usd": 98.06
+  },
   "GMB000088": {
     "cost_usd": 8.5,
     "supplier_sku": "JDSW13BS"
@@ -698,6 +772,9 @@
   "GMB000089": {
     "cost_usd": 58.0,
     "supplier_sku": "JDWK513BS"
+  },
+  "GMB00009": {
+    "cost_usd": 215.57
   },
   "GMB000090": {
     "cost_usd": 81.0,
@@ -714,6 +791,9 @@
   "GMB000093": {
     "cost_usd": 35.0,
     "supplier_sku": "JDSS186-1BS Minimal"
+  },
+  "GMB000094": {
+    "cost_usd": 131.74
   },
   "GMB000095": {
     "cost_usd": 11.5,
@@ -735,12 +815,39 @@
     "cost_usd": 17.0,
     "supplier_sku": "JD-DB111BS"
   },
+  "GMB00011": {
+    "cost_usd": 70.94
+  },
+  "GMB00014": {
+    "cost_usd": 32.45
+  },
+  "GMB00015": {
+    "cost_usd": 28.5
+  },
   "GMB00016": {
     "cost_usd": 3.5,
     "supplier_sku": "BS"
   },
+  "GMB00023": {
+    "cost_usd": 70.4
+  },
+  "MB00002": {
+    "cost_usd": 206.53
+  },
+  "MB00005": {
+    "cost_usd": 107.1
+  },
+  "MB00024": {
+    "cost_usd": 125.0
+  },
+  "MB00025": {
+    "cost_usd": 125.0
+  },
   "TBB00021": {
     "cost_usd": 11.0,
     "supplier_sku": "JD-M225-1TS"
+  },
+  "TGMB00021": {
+    "cost_usd": 34.46
   }
 }
