@@ -163,6 +163,10 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+# ── Session state init ────────────────────────────────────────────────────────────
+if "rec_order_overrides" not in st.session_state:
+    st.session_state.rec_order_overrides = {}
+
 # ── Load Supplier Data ────────────────────────────────────────────────────────────
 if "supplier_data" not in st.session_state:
     with st.spinner("Loading supplier data…"):
@@ -251,22 +255,28 @@ else:
     display = filtered[[
         "status", "product", "sku", "supplier_sku",
         "on_hand", "on_order", "sold_90d", "avg_daily",
-        "days_cover", "rec_order", "cost_usd", "order_value_aud"
+        "days_cover", "rec_order", "pcs_per_box", "cost_usd", "order_value_aud"
     ]].copy()
 
     display["status"]     = display["status"].map(STATUS_EMOJI)
     display["avg_daily"]  = display["avg_daily"].apply(lambda x: round(x, 2))
     display["days_cover"] = display["days_cover"].apply(lambda x: x if x < 999 else None)
-    display["exclude"]    = False   # checkbox — always False here; excluded rows are filtered out before this
+    display["exclude"]    = False
 
     display.columns = [
         "", "Product", "SKU", "Supplier SKU",
         "On Hand", "On Order", "Sold 90d", "Avg/Day",
-        "Days Cover", "Rec. Order", "Cost (USD)", "Order Value (AUD)", "Exclude"
+        "Days Cover", "Rec. Order", "Pcs/Box", "Cost (USD)", "Order Value (AUD)", "Exclude"
     ]
 
+    # Apply any session-level rec_order overrides
+    for idx, row in display.iterrows():
+        sku_ = row["SKU"]
+        if sku_ in st.session_state.rec_order_overrides:
+            display.at[idx, "Rec. Order"] = st.session_state.rec_order_overrides[sku_]
+
     read_only_cols = ["", "Product", "SKU", "On Hand", "On Order",
-                      "Sold 90d", "Avg/Day", "Days Cover", "Rec. Order", "Order Value (AUD)"]
+                      "Sold 90d", "Avg/Day", "Days Cover", "Order Value (AUD)"]
 
     edited = st.data_editor(
         display,
@@ -278,7 +288,13 @@ else:
                                     "✕", help="Exclude — hides this SKU from the dashboard. "
                                     "Restore it any time from the Exclusion List below.",
                                     width="small", default=False),
-            "Rec. Order":       st.column_config.NumberColumn(format="%d units"),
+            "Rec. Order":       st.column_config.NumberColumn(
+                                    "Rec. Order", help="Override the calculated quantity for this order",
+                                    min_value=0, step=1, format="%d units"),
+            "Pcs/Box":          st.column_config.NumberColumn(
+                                    "Pcs/Box", help="Units per box — saved to memory. "
+                                    "Rec. Order will always round up to a full box.",
+                                    min_value=1, step=1, format="%d"),
             "On Hand":          st.column_config.NumberColumn(format="%d"),
             "On Order":         st.column_config.NumberColumn(format="%d"),
             "Sold 90d":         st.column_config.NumberColumn(format="%d"),
@@ -295,6 +311,7 @@ else:
 
     # ── Merge edits back into session_state.supplier_data ─────────────────────────
     newly_excluded = []
+    pcs_per_box_changed = False
     for _, row in edited.iterrows():
         sku = row.get("SKU", "")
         if not sku:
@@ -306,10 +323,28 @@ else:
             entry["excluded"] = True
             newly_excluded.append(sku)
 
+        # Rec. Order override (session-only)
+        try:
+            new_qty = int(row.get("Rec. Order") or 0)
+            if new_qty >= 0:
+                st.session_state.rec_order_overrides[sku] = new_qty
+        except (TypeError, ValueError):
+            pass
+
         # Supplier SKU edit
         new_supp_sku = str(row.get("Supplier SKU") or "").strip()
         if new_supp_sku:
             entry["supplier_sku"] = new_supp_sku
+
+        # Pcs/Box (saved to GitHub memory)
+        try:
+            new_ppb = row.get("Pcs/Box")
+            if new_ppb and int(new_ppb) > 0:
+                if entry.get("pcs_per_box") != int(new_ppb):
+                    entry["pcs_per_box"] = int(new_ppb)
+                    pcs_per_box_changed = True
+        except (TypeError, ValueError):
+            pass
 
         # Cost edit
         try:
@@ -321,6 +356,8 @@ else:
 
     if newly_excluded:
         st.rerun()
+    if pcs_per_box_changed:
+        st.rerun()  # recalculate rec_order with new box rounding
 
 # ── Manual Additions (session only — resets on refresh) ──────────────────────────
 if "manual_additions" not in st.session_state:
@@ -441,8 +478,19 @@ else:
     st.caption("No manual additions yet. Use the search above to add any product.")
 
 # ── Combined Totals + Exports ─────────────────────────────────────────────────────
-calc_order_rows   = filtered[filtered["rec_order"] > 0].to_dict("records") if not filtered.empty else []
-all_order_rows    = calc_order_rows + st.session_state.manual_additions
+rec_overrides = st.session_state.rec_order_overrides
+calc_order_rows = []
+if not filtered.empty:
+    for r in filtered.to_dict("records"):
+        qty = rec_overrides.get(r["sku"], r["rec_order"])
+        if qty > 0:
+            r = r.copy()
+            r["rec_order"] = qty
+            if r.get("cost_usd"):
+                r["order_value_usd"] = round(qty * r["cost_usd"], 2)
+                r["order_value_aud"] = round(r["order_value_usd"] * usd_to_aud, 2)
+            calc_order_rows.append(r)
+all_order_rows = calc_order_rows + st.session_state.manual_additions
 
 if all_order_rows:
     total_usd = sum((r.get("order_value_usd") or 0) for r in all_order_rows)

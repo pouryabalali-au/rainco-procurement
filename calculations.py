@@ -1,3 +1,5 @@
+import math
+
 LEAD_TIME_DAYS = 120
 SAFETY_STOCK_DAYS = 30
 TARGET_COVER_DAYS = LEAD_TIME_DAYS + SAFETY_STOCK_DAYS  # 150 days
@@ -55,6 +57,11 @@ def calculate_procurement(products, inventory_by_inv_id, sales_by_variant_id, on
             if rec_order > 0 and rec_order < moq:
                 rec_order = moq
 
+            # Round up to nearest full box (if pcs_per_box is set)
+            pcs_per_box = supplier_data.get(sku, {}).get("pcs_per_box")
+            if pcs_per_box and int(pcs_per_box) > 0 and rec_order > 0:
+                rec_order = int(math.ceil(rec_order / int(pcs_per_box)) * int(pcs_per_box))
+
             # Status
             if avg_daily == 0:
                 status = "no_sales"
@@ -67,7 +74,7 @@ def calculate_procurement(products, inventory_by_inv_id, sales_by_variant_id, on
 
             # Supplier data (keyed by RainCo SKU) overrides Shopify cost
             supp = supplier_data.get(sku, {})
-            supplier_sku = supp.get("supplier_sku", "") or ""
+            supplier_sku  = supp.get("supplier_sku", "") or ""
             cost_usd = supp.get("cost_usd") or costs_usd.get(inv_item_id)
             cost_aud = round(cost_usd * usd_to_aud, 2) if cost_usd else None
             order_value_usd = round(rec_order * cost_usd, 2) if cost_usd and rec_order > 0 else None
@@ -89,6 +96,7 @@ def calculate_procurement(products, inventory_by_inv_id, sales_by_variant_id, on
                 "rec_order": rec_order,
                 "moq": moq,
                 "status": status,
+                "pcs_per_box": int(pcs_per_box) if pcs_per_box else None,
                 "cost_usd": cost_usd,
                 "cost_aud": cost_aud,
                 "order_value_usd": order_value_usd,
