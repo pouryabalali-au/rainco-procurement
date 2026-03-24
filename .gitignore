@@ -1,0 +1,11 @@
+.env
+__pycache__/
+*.pyc
+.DS_Store
+data_cache.json
+manual_on_order.json
+moq_settings.json
+style.css
+*.toml
+shopify.app.toml
+get_token.py
