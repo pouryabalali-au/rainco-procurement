@@ -9,6 +9,8 @@ from shopify_api import (
     get_inventory_costs, get_usd_to_aud_rate
 )
 from calculations import calculate_procurement
+from pdf_generator import generate_po_pdf
+from shiphero import push_po_to_shiphero
 
 st.set_page_config(
     page_title="RainCo Procurement",
@@ -270,27 +272,43 @@ else:
         st.caption(f"Live exchange rate: 1 USD = {usd_to_aud:.4f} AUD")
 
     st.markdown("<hr>", unsafe_allow_html=True)
-    col1, col2, _ = st.columns([1, 1, 3])
+
+    order_rows = filtered[filtered["rec_order"] > 0].to_dict("records")
+    po_number  = f"RC-{datetime.now().strftime('%Y%m%d')}-{len(order_rows):03d}"
+
+    col1, col2, col3 = st.columns([1, 1, 1])
+
     with col1:
+        pdf_bytes = generate_po_pdf(order_rows, usd_to_aud, po_number)
         st.download_button(
-            "Export CSV",
-            data=filtered.to_csv(index=False).encode(),
-            file_name=f"rainco_order_{datetime.now().strftime('%Y%m%d')}.csv",
-            mime="text/csv",
+            "Export Order PDF",
+            data=pdf_bytes,
+            file_name=f"{po_number}.pdf",
+            mime="application/pdf",
             use_container_width=True
         )
+
     with col2:
         order_df = filtered[filtered["rec_order"] > 0][[
-            "sku", "product", "vendor", "rec_order", "cost_usd", "order_value_usd", "order_value_aud"
+            "sku", "product", "rec_order", "cost_usd", "order_value_usd", "order_value_aud"
         ]].copy()
-        order_df.columns = ["SKU", "Product", "Supplier", "Qty to Order", "Cost USD", "Order Value USD", "Order Value AUD"]
+        order_df.columns = ["SKU", "Product", "Qty to Order", "Cost USD", "Order Value USD", "Order Value AUD"]
         st.download_button(
-            "Export Order",
+            "Export Order CSV",
             data=order_df.to_csv(index=False).encode(),
-            file_name=f"rainco_purchase_order_{datetime.now().strftime('%Y%m%d')}.csv",
+            file_name=f"{po_number}.csv",
             mime="text/csv",
             use_container_width=True
         )
+
+    with col3:
+        if st.button("Send to ShipHero", use_container_width=True):
+            with st.spinner("Creating PO in ShipHero…"):
+                result = push_po_to_shiphero(order_rows, po_number)
+            if result["success"]:
+                st.success(f"PO {result['po_number']} created in ShipHero")
+            else:
+                st.error(f"ShipHero error: {result['error']}")
 
 # ── Manual On-Order Overrides ─────────────────────────────────────────────────────
 with st.expander("Manual On-Order Overrides (if Shopify PO sync is missing data)"):
