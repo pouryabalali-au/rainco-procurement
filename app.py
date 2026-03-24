@@ -34,7 +34,6 @@ st.markdown("""
     font-weight: 400 !important;
     color: #1c1c1c !important;
   }
-  /* Sidebar */
   section[data-testid="stSidebar"] {
     background-color: #ffffff !important;
     border-right: 1px solid #e0e0dc !important;
@@ -42,7 +41,6 @@ st.markdown("""
   section[data-testid="stSidebar"] * {
     font-family: 'Poppins', sans-serif !important;
   }
-  /* Buttons */
   .stButton > button {
     background-color: #344d47 !important;
     color: #ffffff !important;
@@ -55,9 +53,7 @@ st.markdown("""
     text-transform: uppercase !important;
     padding: 0.5rem 1.2rem !important;
   }
-  .stButton > button:hover {
-    background-color: #263a35 !important;
-  }
+  .stButton > button:hover { background-color: #263a35 !important; }
   .stDownloadButton > button {
     background-color: transparent !important;
     color: #344d47 !important;
@@ -73,7 +69,6 @@ st.markdown("""
     background-color: #344d47 !important;
     color: #ffffff !important;
   }
-  /* Metrics */
   [data-testid="stMetric"] {
     background-color: #ffffff !important;
     border: 1px solid #e0e0dc !important;
@@ -94,25 +89,17 @@ st.markdown("""
     font-weight: 400 !important;
     color: #1c1c1c !important;
   }
-  /* Inputs */
   .stTextInput input, .stNumberInput input {
     border-radius: 0 !important;
     border-color: #e0e0dc !important;
     font-family: 'Poppins', sans-serif !important;
     font-size: 0.85rem !important;
   }
-  .stMultiSelect [data-baseweb="select"] {
-    border-radius: 0 !important;
-  }
-  /* Dataframe */
-  .stDataFrame {
-    border: 1px solid #e0e0dc !important;
-  }
-  /* Hide Streamlit chrome */
+  .stMultiSelect [data-baseweb="select"] { border-radius: 0 !important; }
+  .stDataFrame { border: 1px solid #e0e0dc !important; }
   #MainMenu, footer, header { visibility: hidden; }
   .block-container { padding-top: 2rem !important; }
   hr { border: none !important; border-top: 1px solid #e0e0dc !important; margin: 1rem 0 !important; }
-  /* Sidebar labels */
   .sidebar-label {
     font-size: 0.62rem;
     letter-spacing: 0.18em;
@@ -122,14 +109,6 @@ st.markdown("""
     margin-bottom: 4px;
     margin-top: 12px;
     display: block;
-  }
-  .missing-badge {
-    background: #fff3cd;
-    border: 1px solid #ffc107;
-    border-radius: 4px;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.8rem;
-    color: #856404;
   }
 </style>
 """, unsafe_allow_html=True)
@@ -162,7 +141,6 @@ with st.sidebar:
         default=["critical", "order_soon"],
         format_func=lambda x: STATUS_LABEL[x]
     )
-    filter_search = st.text_input("Search product", placeholder="Name, SKU or type…")
     only_order = st.checkbox("Only items to order", value=True)
 
     st.markdown("<hr>", unsafe_allow_html=True)
@@ -192,6 +170,9 @@ if "supplier_data" not in st.session_state:
 
 supplier_data = st.session_state.supplier_data
 
+# Build excluded set from supplier_data flags
+excluded_skus = {sku for sku, v in supplier_data.items() if isinstance(v, dict) and v.get("excluded")}
+
 # ── Load Shopify Data ─────────────────────────────────────────────────────────────
 @st.cache_data(ttl=3600, show_spinner=False)
 def fetch_all_data():
@@ -218,13 +199,15 @@ rows = calculate_procurement(products, inventory, sales, on_order, global_moq, c
 df   = pd.DataFrame(rows)
 
 # ── Metric Cards ─────────────────────────────────────────────────────────────────
-total      = len(df)
-critical   = len(df[df.status == "critical"])
-order_soon = len(df[df.status == "order_soon"])
-to_order   = len(df[df.rec_order > 0])
+# Metrics exclude excluded SKUs
+df_active = df[~df.sku.isin(excluded_skus)]
+total      = len(df_active)
+critical   = len(df_active[df_active.status == "critical"])
+order_soon = len(df_active[df_active.status == "order_soon"])
+to_order   = len(df_active[df_active.rec_order > 0])
 
 c1, c2, c3, c4, c5 = st.columns(5)
-c1.metric("Total SKUs",    total)
+c1.metric("Active SKUs",   total)
 c2.metric("🔴 Critical",    critical,   help="Less than 30 days of stock")
 c3.metric("🟡 Order Soon",  order_soon, help="30–60 days of stock")
 c4.metric("To Order",      to_order,   help="SKUs with recommended order qty > 0")
@@ -233,38 +216,52 @@ c5.metric("Last Synced",   fetched_at)
 st.markdown("<hr>", unsafe_allow_html=True)
 
 # ── Filters ───────────────────────────────────────────────────────────────────────
-filtered = df.copy()
+filtered = df[~df.sku.isin(excluded_skus)].copy()
 if filter_status:
     filtered = filtered[filtered.status.isin(filter_status)]
-if filter_search:
-    mask = (
-        filtered.product.str.contains(filter_search, case=False, na=False) |
-        filtered.sku.str.contains(filter_search, case=False, na=False)
-    )
-    filtered = filtered[mask]
 if only_order:
     filtered = filtered[filtered.rec_order > 0]
 
-# ── Table ─────────────────────────────────────────────────────────────────────────
-order_items = filtered[filtered.rec_order > 0]
+# ── Table Header + Search ─────────────────────────────────────────────────────────
+hcol1, hcol2 = st.columns([2, 2])
+with hcol1:
+    st.markdown(
+        f"<h3 style='margin-top:0.4rem;margin-bottom:0'>Order List "
+        f"<span style='font-family:Poppins,sans-serif;font-size:0.85rem;font-weight:300;color:#888'>"
+        f"({len(filtered)} items)</span></h3>",
+        unsafe_allow_html=True
+    )
+with hcol2:
+    filter_search = st.text_input(
+        "search", label_visibility="collapsed",
+        placeholder="🔍  Search by product name, SKU or supplier SKU…",
+        key="main_search"
+    )
+
+if filter_search:
+    q = filter_search.strip()
+    mask = (
+        filtered.product.str.contains(q, case=False, na=False) |
+        filtered.sku.str.contains(q, case=False, na=False) |
+        filtered.supplier_sku.str.contains(q, case=False, na=False)
+    )
+    filtered = filtered[mask]
+
+# ── Missing data warning ──────────────────────────────────────────────────────────
+order_items      = filtered[filtered.rec_order > 0]
 missing_supp_sku = order_items[order_items.supplier_sku.fillna("") == ""]
 missing_cost     = order_items[order_items.cost_usd.isna() | (order_items.cost_usd == 0)]
 missing_skus     = set(missing_supp_sku.sku.tolist()) | set(missing_cost.sku.tolist())
 
-st.markdown(
-    f"<h3 style='margin-top:0;margin-bottom:0.75rem'>Order List "
-    f"<span style='font-family:Poppins,sans-serif;font-size:0.85rem;font-weight:300;color:#888'>"
-    f"({len(filtered)} items)</span></h3>",
-    unsafe_allow_html=True
-)
-
 if missing_skus:
     st.warning(
-        f"⚠️  **{len(missing_skus)} item(s) are missing supplier SKU or cost price** — "
-        f"edit them in the table below before exporting. SKUs: `{'`, `'.join(sorted(missing_skus))}`",
+        f"⚠️  **{len(missing_skus)} item(s) missing supplier SKU or cost** — "
+        f"edit the highlighted cells before exporting.  "
+        f"SKUs: `{'`, `'.join(sorted(missing_skus))}`",
         icon=None
     )
 
+# ── Main Table ────────────────────────────────────────────────────────────────────
 if filtered.empty:
     st.info("No items match the current filters.")
 else:
@@ -274,13 +271,14 @@ else:
         "days_cover", "rec_order", "cost_usd", "order_value_aud"
     ]].copy()
 
-    display["status"]    = display["status"].map(STATUS_EMOJI)
-    display["avg_daily"] = display["avg_daily"].apply(lambda x: round(x, 2))
+    display.insert(0, "exclude", False)   # checkbox column — all False (excluded rows never appear here)
+
+    display["status"]     = display["status"].map(STATUS_EMOJI)
+    display["avg_daily"]  = display["avg_daily"].apply(lambda x: round(x, 2))
     display["days_cover"] = display["days_cover"].apply(lambda x: x if x < 999 else None)
-    # cost_usd and supplier_sku stay as-is for editing
 
     display.columns = [
-        "", "Product", "SKU", "Supplier SKU",
+        "Exclude", "", "Product", "SKU", "Supplier SKU",
         "On Hand", "On Order", "Sold 90d", "Avg/Day",
         "Days Cover", "Rec. Order", "Cost (USD)", "Order Value (AUD)"
     ]
@@ -294,6 +292,10 @@ else:
         hide_index=True,
         disabled=read_only_cols,
         column_config={
+            "Exclude":          st.column_config.CheckboxColumn(
+                                    "✕", help="Exclude this SKU — it will be hidden from the dashboard. "
+                                    "You can restore it from the Exclusion List below.",
+                                    width="small"),
             "Rec. Order":       st.column_config.NumberColumn(format="%d units"),
             "On Hand":          st.column_config.NumberColumn(format="%d"),
             "On Order":         st.column_config.NumberColumn(format="%d"),
@@ -307,26 +309,33 @@ else:
         key="order_table"
     )
 
-    # Persist any edits to supplier_data in session state
-    changed = False
+    # ── Merge edits back into session_state.supplier_data ─────────────────────────
+    newly_excluded = []
     for _, row in edited.iterrows():
         sku = row.get("SKU", "")
         if not sku:
             continue
         entry = st.session_state.supplier_data.setdefault(sku, {})
+
+        # Exclusion
+        if row.get("Exclude"):
+            entry["excluded"] = True
+            newly_excluded.append(sku)
+
+        # Supplier SKU edit
         new_supp_sku = str(row.get("Supplier SKU") or "").strip()
-        new_cost     = row.get("Cost (USD)")
         if new_supp_sku and new_supp_sku != entry.get("supplier_sku", ""):
             entry["supplier_sku"] = new_supp_sku
-            changed = True
+
+        # Cost edit
+        new_cost = row.get("Cost (USD)")
         if new_cost and float(new_cost) > 0 and float(new_cost) != entry.get("cost_usd", 0):
             entry["cost_usd"] = round(float(new_cost), 2)
-            changed = True
 
-    if changed:
-        st.caption("✏️ Unsaved changes — click **Save Supplier Data** or export PDF to save.")
+    if newly_excluded:
+        st.rerun()  # immediately remove excluded rows from view
 
-    # ── AUD Total ──────────────────────────────────────────────────────────────
+    # ── AUD Totals ────────────────────────────────────────────────────────────────
     total_aud = filtered["order_value_aud"].dropna().sum()
     total_usd = filtered["order_value_usd"].dropna().sum()
     st.markdown("<hr>", unsafe_allow_html=True)
@@ -341,22 +350,16 @@ else:
     order_rows = filtered[filtered["rec_order"] > 0].to_dict("records")
     po_number  = f"RC-{datetime.now().strftime('%Y%m%d')}-{len(order_rows):03d}"
 
+    def _validate_order_rows(rows):
+        return [r.get("sku", "?") for r in rows if not r.get("supplier_sku") or not r.get("cost_usd")]
+
     col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
 
-    # ── Validation helper ──────────────────────────────────────────────────────
-    def _validate_order_rows(rows):
-        """Returns list of SKUs that are missing supplier_sku or cost_usd."""
-        bad = []
-        for r in rows:
-            if not r.get("supplier_sku") or not r.get("cost_usd"):
-                bad.append(r.get("sku", "?"))
-        return bad
-
     with col1:
-        bad_skus = _validate_order_rows(order_rows)
-        if bad_skus:
+        bad = _validate_order_rows(order_rows)
+        if bad:
             st.button("Export Order PDF", use_container_width=True, disabled=True,
-                      help=f"Missing data for: {', '.join(bad_skus)}")
+                      help=f"Missing data for: {', '.join(bad)}")
         else:
             pdf_bytes = generate_po_pdf(order_rows, usd_to_aud, po_number)
             if st.download_button(
@@ -366,7 +369,6 @@ else:
                 mime="application/pdf",
                 use_container_width=True
             ):
-                # Auto-save supplier data on export
                 save_supplier_data(st.session_state.supplier_data)
 
     with col2:
@@ -384,10 +386,10 @@ else:
         )
 
     with col3:
-        bad_skus = _validate_order_rows(order_rows)
-        if bad_skus:
+        bad = _validate_order_rows(order_rows)
+        if bad:
             st.button("Send to ShipHero", use_container_width=True, disabled=True,
-                      help=f"Missing data for: {', '.join(bad_skus)}")
+                      help=f"Missing data for: {', '.join(bad)}")
         else:
             if st.button("Send to ShipHero", use_container_width=True):
                 with st.spinner("Creating PO in ShipHero…"):
@@ -402,9 +404,70 @@ else:
             with st.spinner("Saving to GitHub…"):
                 ok = save_supplier_data(st.session_state.supplier_data)
             if ok:
-                st.success("Supplier data saved.")
+                st.success("Saved.")
             else:
-                st.error("Failed to save — check GitHub token.")
+                st.error("Failed — check GitHub token.")
+
+# ── Exclusion List ────────────────────────────────────────────────────────────────
+excluded_skus_current = {
+    sku for sku, v in st.session_state.supplier_data.items()
+    if isinstance(v, dict) and v.get("excluded")
+}
+
+excl_label = f"Exclusion List ({len(excluded_skus_current)} SKUs)" if excluded_skus_current else "Exclusion List"
+with st.expander(excl_label, expanded=bool(excluded_skus_current)):
+    if not excluded_skus_current:
+        st.caption("No SKUs excluded. Tick the ✕ checkbox on any row to hide it from the dashboard.")
+    else:
+        st.caption("These SKUs are hidden from the dashboard. Tick the checkbox to restore them.")
+
+        # Build a display table of excluded SKUs
+        excl_rows = []
+        for sku in sorted(excluded_skus_current):
+            entry = st.session_state.supplier_data.get(sku, {})
+            # Try to find product name from df
+            match = df[df.sku == sku]
+            product_name = match.iloc[0]["product"] if not match.empty else "—"
+            excl_rows.append({
+                "Restore": False,
+                "SKU": sku,
+                "Product": product_name,
+                "Supplier SKU": entry.get("supplier_sku", ""),
+                "Cost (USD)": entry.get("cost_usd", None),
+            })
+
+        excl_df = pd.DataFrame(excl_rows)
+        edited_excl = st.data_editor(
+            excl_df,
+            use_container_width=True,
+            hide_index=True,
+            disabled=["SKU", "Product", "Supplier SKU", "Cost (USD)"],
+            column_config={
+                "Restore": st.column_config.CheckboxColumn(
+                    "↩ Restore", help="Tick to restore this SKU to the dashboard", width="small"
+                ),
+                "Cost (USD)": st.column_config.NumberColumn(format="$%.2f"),
+            },
+            key="excl_table"
+        )
+
+        restored = [r["SKU"] for _, r in edited_excl.iterrows() if r.get("Restore")]
+        if restored:
+            for sku in restored:
+                if sku in st.session_state.supplier_data:
+                    st.session_state.supplier_data[sku].pop("excluded", None)
+            st.rerun()
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        ecol1, ecol2 = st.columns([1, 3])
+        with ecol1:
+            if st.button("Save Exclusion List", use_container_width=True):
+                with st.spinner("Saving…"):
+                    ok = save_supplier_data(st.session_state.supplier_data)
+                if ok:
+                    st.success("Saved.")
+                else:
+                    st.error("Failed — check GitHub token.")
 
 # ── Manual On-Order Overrides ─────────────────────────────────────────────────────
 with st.expander("Manual On-Order Overrides (if Shopify PO sync is missing data)"):
