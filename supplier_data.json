@@ -1,0 +1,746 @@
+{
+  "AB00001": {
+    "cost_usd": 15.0,
+    "supplier_sku": "JD-M232F"
+  },
+  "AB00002": {
+    "cost_usd": 60.0,
+    "supplier_sku": "JD-LB114F 200mm JDWH52-10F"
+  },
+  "AB00003": {
+    "cost_usd": 54.0,
+    "supplier_sku": "JD-WS511F"
+  },
+  "AB00004": {
+    "cost_usd": 81.0,
+    "supplier_sku": "JD-WK2003-2F"
+  },
+  "AB00006": {
+    "cost_usd": 69.0,
+    "supplier_sku": "JDWB703-2F"
+  },
+  "AB000062": {
+    "cost_usd": 58.0,
+    "supplier_sku": "JD-WB307"
+  },
+  "AB000063": {
+    "cost_usd": 138.0,
+    "supplier_sku": "JDWS531-HA54F"
+  },
+  "AB000065": {
+    "cost_usd": 50.0,
+    "supplier_sku": "JD-W18F SET"
+  },
+  "AB000066": {
+    "cost_usd": 50.0,
+    "supplier_sku": "JD-W18-54F SET"
+  },
+  "AB000067": {
+    "cost_usd": 29.0,
+    "supplier_sku": "JD-MH800BF"
+  },
+  "AB000068": {
+    "cost_usd": 38.0,
+    "supplier_sku": "JD-MH807F"
+  },
+  "AB000069": {
+    "cost_usd": 48.0,
+    "supplier_sku": "JD-MH872F"
+  },
+  "AB00007": {
+    "cost_usd": 51.0,
+    "supplier_sku": "JD-WB1021F"
+  },
+  "AB000071": {
+    "cost_usd": 4.2,
+    "supplier_sku": "JD-MH811F"
+  },
+  "AB000072": {
+    "cost_usd": 9.6,
+    "supplier_sku": "JD-MD720F"
+  },
+  "AB000073": {
+    "cost_usd": 11.0,
+    "supplier_sku": "JD-MD721F"
+  },
+  "AB000074": {
+    "cost_usd": 2.5,
+    "supplier_sku": "JD-MD810F"
+  },
+  "AB000075": {
+    "cost_usd": 15.0,
+    "supplier_sku": "JD-MH684F"
+  },
+  "AB000078": {
+    "cost_usd": 7.5,
+    "supplier_sku": "JD-MH100F"
+  },
+  "AB000079": {
+    "cost_usd": 9.0,
+    "supplier_sku": "JD-MH202F"
+  },
+  "AB000081": {
+    "cost_usd": 16.0,
+    "supplier_sku": "JD-MH109F"
+  },
+  "AB000086": {
+    "cost_usd": 11.0,
+    "supplier_sku": "JD-S03F"
+  },
+  "AB000089": {
+    "cost_usd": 7.5,
+    "supplier_sku": "JDMH101F"
+  },
+  "AB00009": {
+    "cost_usd": 78.0,
+    "supplier_sku": "JD-WB1021H F"
+  },
+  "AB00010": {
+    "cost_usd": 36.0,
+    "supplier_sku": "JD-WS504-1F"
+  },
+  "AB00011": {
+    "cost_usd": 76.0,
+    "supplier_sku": "JD-WB703F"
+  },
+  "AB00012": {
+    "cost_usd": 64.0,
+    "supplier_sku": "JD-WH52-10F JD-LB111F"
+  },
+  "AB00013": {
+    "cost_usd": 11.0,
+    "supplier_sku": "JD-S04F G1 1/4"
+  },
+  "AB00014": {
+    "cost_usd": 7.0,
+    "supplier_sku": "JD-M229F"
+  },
+  "AB00015": {
+    "cost_usd": 3.5,
+    "supplier_sku": "F"
+  },
+  "AB00016": {
+    "cost_usd": 28.0,
+    "supplier_sku": "JD-SP187F"
+  },
+  "AB00017": {
+    "cost_usd": 68.0,
+    "supplier_sku": "JD-SK4F"
+  },
+  "AB00018": {
+    "cost_usd": 52.0,
+    "supplier_sku": "JDSB181F"
+  },
+  "AB00022": {
+    "cost_usd": 35.0,
+    "supplier_sku": "JD-SS1864F"
+  },
+  "AB00023": {
+    "cost_usd": 24.5,
+    "supplier_sku": "JD-M221F"
+  },
+  "AB00024": {
+    "cost_usd": 11.0,
+    "supplier_sku": "JD-M225-1F"
+  },
+  "AB00025": {
+    "cost_usd": 36.0,
+    "supplier_sku": "JDWH03F SET"
+  },
+  "AB00026": {
+    "cost_usd": 52.0,
+    "supplier_sku": "JDSS187F"
+  },
+  "AB00027": {
+    "cost_usd": 168.0,
+    "supplier_sku": "JD-5180F"
+  },
+  "AB00028": {
+    "cost_usd": 82.0,
+    "supplier_sku": "JD-SP501F"
+  },
+  "AB00029": {
+    "cost_usd": 26.5,
+    "supplier_sku": "JD-P33F"
+  },
+  "AB00030": {
+    "cost_usd": 14.0,
+    "supplier_sku": "JD-M559F"
+  },
+  "AB00031": {
+    "cost_usd": 17.0,
+    "supplier_sku": "JD-DB111F"
+  },
+  "AB00032": {
+    "cost_usd": 32.0,
+    "supplier_sku": "JD-M557F"
+  },
+  "AB00033": {
+    "cost_usd": 11.5,
+    "supplier_sku": "JD-M558F"
+  },
+  "AB00035": {
+    "cost_usd": 52.0,
+    "supplier_sku": "JD-WS511-4F"
+  },
+  "AB00036": {
+    "cost_usd": 175.0,
+    "supplier_sku": "JD-5030F"
+  },
+  "AB00037": {
+    "cost_usd": 56.0,
+    "supplier_sku": "JD-SK230F"
+  },
+  "AB00038": {
+    "cost_usd": 74.0,
+    "supplier_sku": "JD-DR401RF"
+  },
+  "AB00039": {
+    "cost_usd": 35.0,
+    "supplier_sku": "JD-WW544F"
+  },
+  "AB00040": {
+    "cost_usd": 24.0,
+    "supplier_sku": "JD-L201F 12mm Cover"
+  },
+  "AB00041": {
+    "cost_usd": 64.0,
+    "supplier_sku": "JDLB114F 400mm JDWH52-10F"
+  },
+  "AB00042": {
+    "cost_usd": 36.0,
+    "supplier_sku": "JD-LB201F Set"
+  },
+  "AB00045": {
+    "cost_usd": 26.5,
+    "supplier_sku": "JD-M222F"
+  },
+  "AB00046": {
+    "cost_usd": 8.5,
+    "supplier_sku": "JD-SW13F"
+  },
+  "AB00047": {
+    "cost_usd": 52.0,
+    "supplier_sku": "JD-DS201AF"
+  },
+  "AB000473": {
+    "cost_usd": 52.0,
+    "supplier_sku": "JD-DS201TS"
+  },
+  "AB00048": {
+    "cost_usd": 58.0,
+    "supplier_sku": "JDSK513F"
+  },
+  "AB00050": {
+    "cost_usd": 52.0,
+    "supplier_sku": "JD-SS187RB Minimal"
+  },
+  "AB00052": {
+    "cost_usd": 81.0,
+    "supplier_sku": "JDWK2003-2-1F S180"
+  },
+  "AB00053": {
+    "cost_usd": 35.0,
+    "supplier_sku": "JD-SS186RB Minimal"
+  },
+  "AB00054": {
+    "cost_usd": 12.0,
+    "supplier_sku": "JD-M150F"
+  },
+  "AB00055": {
+    "cost_usd": 19.5,
+    "supplier_sku": "JD-M400F"
+  },
+  "AB00056": {
+    "cost_usd": 11.0,
+    "supplier_sku": "JD-S04F G1 1/2"
+  },
+  "AB00057": {
+    "cost_usd": 59.0,
+    "supplier_sku": "JDL212FF JDWS504-2F"
+  },
+  "AB00058": {
+    "cost_usd": 64.0,
+    "supplier_sku": "JDWK313PF S180"
+  },
+  "BB00001": {
+    "cost_usd": 15.0,
+    "supplier_sku": "JD-M232TS"
+  },
+  "BB00003": {
+    "cost_usd": 54.0,
+    "supplier_sku": "JDWS511TS"
+  },
+  "BB000054": {
+    "cost_usd": 35.0,
+    "supplier_sku": "JD-SS186RB-TS"
+  },
+  "BB000055": {
+    "cost_usd": 52.0,
+    "supplier_sku": "JD-SS187RB-TS"
+  },
+  "BB000056": {
+    "cost_usd": 72.0,
+    "supplier_sku": "JD-SB182-1TS"
+  },
+  "BB000075": {
+    "cost_usd": 11.0,
+    "supplier_sku": "JD-S03TS"
+  },
+  "BB000076": {
+    "cost_usd": 36.0,
+    "supplier_sku": "JDHA54TS SET"
+  },
+  "BB000077": {
+    "cost_usd": 7.5,
+    "supplier_sku": "JDMH101TS"
+  },
+  "BB000078": {
+    "cost_usd": 50.0,
+    "supplier_sku": "JDW18TS SET"
+  },
+  "BB000079": {
+    "cost_usd": 50.0,
+    "supplier_sku": "JD-W18-54TS SET"
+  },
+  "BB00008": {
+    "cost_usd": 36.0,
+    "supplier_sku": "JD-WH03F JD-LB203TS JD-PC150TS"
+  },
+  "BB000080": {
+    "cost_usd": 138.0,
+    "supplier_sku": "JDWS531-HA54TS"
+  },
+  "BB000081": {
+    "cost_usd": 26.5,
+    "supplier_sku": "JD-P33TS"
+  },
+  "BB000082": {
+    "cost_usd": 64.0,
+    "supplier_sku": "JDLB114TS 400mm JDWH52-10TS"
+  },
+  "BB000083": {
+    "cost_usd": 12.0,
+    "supplier_sku": "JD-M150TS"
+  },
+  "BB000084": {
+    "cost_usd": 26.5,
+    "supplier_sku": "JDM222TS"
+  },
+  "BB000085": {
+    "cost_usd": 175.0,
+    "supplier_sku": "JD-5030TS"
+  },
+  "BB000086": {
+    "cost_usd": 56.0,
+    "supplier_sku": "JDWK230TS"
+  },
+  "BB000087": {
+    "cost_usd": 56.0,
+    "supplier_sku": "JDWK230RS"
+  },
+  "BB000088": {
+    "cost_usd": 8.5,
+    "supplier_sku": "JDSW13TS"
+  },
+  "BB000089": {
+    "cost_usd": 58.0,
+    "supplier_sku": "JDWK513TS"
+  },
+  "BB00009": {
+    "cost_usd": 138.0,
+    "supplier_sku": "JD-WS531TS"
+  },
+  "BB000090": {
+    "cost_usd": 64.0,
+    "supplier_sku": "JDWK313P-1TS S180"
+  },
+  "BB000091": {
+    "cost_usd": 35.0,
+    "supplier_sku": "JDWW544TS"
+  },
+  "BB000092": {
+    "cost_usd": 19.5,
+    "supplier_sku": "JD-M400TS"
+  },
+  "BB00011": {
+    "cost_usd": 36.0,
+    "supplier_sku": "JD-WS04-1TS"
+  },
+  "BB00013": {
+    "cost_usd": 64.0,
+    "supplier_sku": "JD-LB111TS JD-WH52-10TS"
+  },
+  "BB00014": {
+    "cost_usd": 11.0,
+    "supplier_sku": "JD-S04TS"
+  },
+  "BB00016": {
+    "cost_usd": 3.5,
+    "supplier_sku": "TS"
+  },
+  "BB00034": {
+    "cost_usd": 17.0,
+    "supplier_sku": "JDDB111TS"
+  },
+  "BBS00898": {
+    "cost_usd": 81.0,
+    "supplier_sku": "JDWK2003-2-1TS S180"
+  },
+  "BC00006": {
+    "cost_usd": 11.0,
+    "supplier_sku": "JD-S04RS"
+  },
+  "BC000062": {
+    "cost_usd": 48.0,
+    "supplier_sku": "JD-MH872RS"
+  },
+  "BC000064": {
+    "cost_usd": 29.0,
+    "supplier_sku": "JD-MH800RS"
+  },
+  "BC000067": {
+    "cost_usd": 26.5,
+    "supplier_sku": "JDM222RS"
+  },
+  "BC000068": {
+    "cost_usd": 50.0,
+    "supplier_sku": "JDW18RS SET"
+  },
+  "BC000069": {
+    "cost_usd": 11.0,
+    "supplier_sku": "JD-S03RS"
+  },
+  "BC00007": {
+    "cost_usd": 15.0,
+    "supplier_sku": "JD-M232RS"
+  },
+  "BC000070": {
+    "cost_usd": 7.5,
+    "supplier_sku": "JDMH101RS"
+  },
+  "BC000071": {
+    "cost_usd": 50.0,
+    "supplier_sku": "JD-W18-54RS SET"
+  },
+  "BC000072": {
+    "cost_usd": 138.0,
+    "supplier_sku": "JDWS531-HA54RS"
+  },
+  "BC000073": {
+    "cost_usd": 12.0,
+    "supplier_sku": "JD-M150RS"
+  },
+  "BC000074": {
+    "cost_usd": 59.0,
+    "supplier_sku": "JDL212FRS JDWS504-2RS"
+  },
+  "BC000075": {
+    "cost_usd": 8.5,
+    "supplier_sku": "JDSW13RS"
+  },
+  "BC000076": {
+    "cost_usd": 58.0,
+    "supplier_sku": "JDWK513RS"
+  },
+  "BC000078": {
+    "cost_usd": 81.0,
+    "supplier_sku": "JDWK2003-2-1RS S180"
+  },
+  "BC000079": {
+    "cost_usd": 64.0,
+    "supplier_sku": "JDWK313P-1RS S180"
+  },
+  "BC000080": {
+    "cost_usd": 52.0,
+    "supplier_sku": "JDSS187-1RS Minimal"
+  },
+  "BC000082": {
+    "cost_usd": 35.0,
+    "supplier_sku": "JDWW544RS"
+  },
+  "BC000083": {
+    "cost_usd": 19.5,
+    "supplier_sku": "JD-M400RS"
+  },
+  "BC000084": {
+    "cost_usd": 76.0,
+    "supplier_sku": "JDWB703RS"
+  },
+  "BC000088": {
+    "cost_usd": 52.0,
+    "supplier_sku": "JDDS201AR S"
+  },
+  "BC00009": {
+    "cost_usd": 60.0,
+    "supplier_sku": "JD-LB114RS 200mm JDWH52-10RS"
+  },
+  "BC000092": {
+    "cost_usd": 74.0,
+    "supplier_sku": "JD-DR401RRS"
+  },
+  "BC00015": {
+    "cost_usd": 36.0,
+    "supplier_sku": "JD-WH03F JD-LB203RS JD-PC150RS"
+  },
+  "BC00018": {
+    "cost_usd": 81.0,
+    "supplier_sku": "JD-WK2003-2RS"
+  },
+  "BC00024": {
+    "cost_usd": 36.0,
+    "supplier_sku": "JD-WS504-1RS"
+  },
+  "BC00025": {
+    "cost_usd": 52.0,
+    "supplier_sku": "JD-WS511-4RS"
+  },
+  "BC00026": {
+    "cost_usd": 17.0,
+    "supplier_sku": "JD-DB111RS"
+  },
+  "BC00032": {
+    "cost_usd": 3.5,
+    "supplier_sku": "RS"
+  },
+  "BN00001": {
+    "cost_usd": 138.0,
+    "supplier_sku": "JDWS531NS"
+  },
+  "BN00004": {
+    "cost_usd": 64.0,
+    "supplier_sku": "JDWK313PNS"
+  },
+  "BN000089": {
+    "cost_usd": 11.0,
+    "supplier_sku": "JD-S03NS"
+  },
+  "BN000090": {
+    "cost_usd": 7.5,
+    "supplier_sku": "JDMH101NS"
+  },
+  "BN000091": {
+    "cost_usd": 50.0,
+    "supplier_sku": "JDW18NS SET"
+  },
+  "BN000092": {
+    "cost_usd": 50.0,
+    "supplier_sku": "JD-W18-54NS SET"
+  },
+  "BN000093": {
+    "cost_usd": 138.0,
+    "supplier_sku": "JDWS531-HA54NS"
+  },
+  "BN000094": {
+    "cost_usd": 12.0,
+    "supplier_sku": "JD-M150NS"
+  },
+  "BN000095": {
+    "cost_usd": 26.5,
+    "supplier_sku": "JDM222NS"
+  },
+  "BN000096": {
+    "cost_usd": 59.0,
+    "supplier_sku": "JDL212FNS JDWS504-2NS"
+  },
+  "BN000097": {
+    "cost_usd": 175.0,
+    "supplier_sku": "JD-5030NS"
+  },
+  "BN000098": {
+    "cost_usd": 58.0,
+    "supplier_sku": "JDWK513NS"
+  },
+  "BN000099": {
+    "cost_usd": 35.0,
+    "supplier_sku": "JDWW544NS"
+  },
+  "BN00010": {
+    "cost_usd": 64.0,
+    "supplier_sku": "JDLB111NS JDWH52-10NS"
+  },
+  "BN000100": {
+    "cost_usd": 19.5,
+    "supplier_sku": "JD-M400NS"
+  },
+  "BN00013": {
+    "cost_usd": 3.5,
+    "supplier_sku": "NS"
+  },
+  "BN00014": {
+    "cost_usd": 35.0,
+    "supplier_sku": "JD-SS1864NS"
+  },
+  "BN00021": {
+    "cost_usd": 7.0,
+    "supplier_sku": "JD-M229NS"
+  },
+  "BN00024": {
+    "cost_usd": 11.0,
+    "supplier_sku": "JD-S04NS"
+  },
+  "BN00034": {
+    "cost_usd": 17.0,
+    "supplier_sku": "JDDB111NS"
+  },
+  "BN00035": {
+    "cost_usd": 74.0,
+    "supplier_sku": "JD-DR401NS"
+  },
+  "BN00037": {
+    "cost_usd": 70.0,
+    "supplier_sku": "JD-LB102BS JD-WH52-10BS"
+  },
+  "BN00040": {
+    "cost_usd": 64.0,
+    "supplier_sku": "JDWK313P-1NS S180"
+  },
+  "BN00055": {
+    "cost_usd": 81.0,
+    "supplier_sku": "JDWK2003-2-1NS S180"
+  },
+  "BPUW0001": {
+    "cost_usd": 11.0,
+    "supplier_sku": "JD-S04NS G1 1/2"
+  },
+  "CSP1": {
+    "cost_usd": 3.8,
+    "supplier_sku": "-"
+  },
+  "GB00004": {
+    "cost_usd": 81.0,
+    "supplier_sku": "JDWK2003-2TS"
+  },
+  "GB00005": {
+    "cost_usd": 64.0,
+    "supplier_sku": "JD-WK323TS"
+  },
+  "GB00007": {
+    "cost_usd": 51.0,
+    "supplier_sku": "JD-WB1021TS"
+  },
+  "GMB00004": {
+    "cost_usd": 81.0,
+    "supplier_sku": "JD-WK2003-2BS"
+  },
+  "GMB00005": {
+    "cost_usd": 64.0,
+    "supplier_sku": "JD-WK323TS"
+  },
+  "GMB000053": {
+    "cost_usd": 9.0,
+    "supplier_sku": "JD-MH202BS"
+  },
+  "GMB000071": {
+    "cost_usd": 11.0,
+    "supplier_sku": "JD-S03BS"
+  },
+  "GMB000072": {
+    "cost_usd": 36.0,
+    "supplier_sku": "JDHA54BS SET"
+  },
+  "GMB000073": {
+    "cost_usd": 7.5,
+    "supplier_sku": "JDMH101BS"
+  },
+  "GMB000074": {
+    "cost_usd": 50.0,
+    "supplier_sku": "JDW18BS SET"
+  },
+  "GMB000075": {
+    "cost_usd": 50.0,
+    "supplier_sku": "JD-W18-54BS SET"
+  },
+  "GMB000076": {
+    "cost_usd": 138.0,
+    "supplier_sku": "JDWS531-HA54BS"
+  },
+  "GMB000077": {
+    "cost_usd": 26.5,
+    "supplier_sku": "JD-P33BS"
+  },
+  "GMB000078": {
+    "cost_usd": 12.0,
+    "supplier_sku": "JD-M150BS"
+  },
+  "GMB000079": {
+    "cost_usd": 26.5,
+    "supplier_sku": "JDM222BS"
+  },
+  "GMB000080": {
+    "cost_usd": 82.0,
+    "supplier_sku": "JDSP501BS"
+  },
+  "GMB000081": {
+    "cost_usd": 26.0,
+    "supplier_sku": "JDM556BS"
+  },
+  "GMB000082": {
+    "cost_usd": 70.0,
+    "supplier_sku": "JDLB102BS JDWH52-10BS"
+  },
+  "GMB000083": {
+    "cost_usd": 59.0,
+    "supplier_sku": "JDL212FBS JDWS504-2BS"
+  },
+  "GMB000085": {
+    "cost_usd": 175.0,
+    "supplier_sku": "JD-5030BS"
+  },
+  "GMB000086": {
+    "cost_usd": 56.0,
+    "supplier_sku": "JDWK230BS"
+  },
+  "GMB000088": {
+    "cost_usd": 8.5,
+    "supplier_sku": "JDSW13BS"
+  },
+  "GMB000089": {
+    "cost_usd": 58.0,
+    "supplier_sku": "JDWK513BS"
+  },
+  "GMB000090": {
+    "cost_usd": 81.0,
+    "supplier_sku": "JDWK2003-2-1BS S180"
+  },
+  "GMB000091": {
+    "cost_usd": 64.0,
+    "supplier_sku": "JDWK313P-1BS S180"
+  },
+  "GMB000092": {
+    "cost_usd": 52.0,
+    "supplier_sku": "JDSS187-1BS Minimal"
+  },
+  "GMB000093": {
+    "cost_usd": 35.0,
+    "supplier_sku": "JDSS186-1BS Minimal"
+  },
+  "GMB000095": {
+    "cost_usd": 11.5,
+    "supplier_sku": "JDM558BS"
+  },
+  "GMB000096": {
+    "cost_usd": 32.0,
+    "supplier_sku": "JDM557BS"
+  },
+  "GMB000097": {
+    "cost_usd": 35.0,
+    "supplier_sku": "JDWW544BS"
+  },
+  "GMB000098": {
+    "cost_usd": 19.5,
+    "supplier_sku": "JD-M400BS"
+  },
+  "GMB000099": {
+    "cost_usd": 17.0,
+    "supplier_sku": "JD-DB111BS"
+  },
+  "GMB00016": {
+    "cost_usd": 3.5,
+    "supplier_sku": "BS"
+  },
+  "TBB00021": {
+    "cost_usd": 11.0,
+    "supplier_sku": "JD-M225-1TS"
+  }
+}
