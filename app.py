@@ -222,30 +222,13 @@ if filter_status:
 if only_order:
     filtered = filtered[filtered.rec_order > 0]
 
-# ── Table Header + Search ─────────────────────────────────────────────────────────
-hcol1, hcol2 = st.columns([2, 2])
-with hcol1:
-    st.markdown(
-        f"<h3 style='margin-top:0.4rem;margin-bottom:0'>Order List "
-        f"<span style='font-family:Poppins,sans-serif;font-size:0.85rem;font-weight:300;color:#888'>"
-        f"({len(filtered)} items)</span></h3>",
-        unsafe_allow_html=True
-    )
-with hcol2:
-    filter_search = st.text_input(
-        "search", label_visibility="collapsed",
-        placeholder="🔍  Search by product name, SKU or supplier SKU…",
-        key="main_search"
-    )
-
-if filter_search:
-    q = filter_search.strip()
-    mask = (
-        filtered.product.str.contains(q, case=False, na=False) |
-        filtered.sku.str.contains(q, case=False, na=False) |
-        filtered.supplier_sku.str.contains(q, case=False, na=False)
-    )
-    filtered = filtered[mask]
+# ── Table Header ─────────────────────────────────────────────────────────────────
+st.markdown(
+    f"<h3 style='margin-top:0;margin-bottom:0.75rem'>Order List "
+    f"<span style='font-family:Poppins,sans-serif;font-size:0.85rem;font-weight:300;color:#888'>"
+    f"({len(filtered)} items)</span></h3>",
+    unsafe_allow_html=True
+)
 
 # ── Missing data warning ──────────────────────────────────────────────────────────
 order_items      = filtered[filtered.rec_order > 0]
@@ -337,11 +320,107 @@ else:
             pass
 
     if newly_excluded:
-        st.rerun()  # immediately remove excluded rows from view
+        st.rerun()
 
-    # ── AUD Totals ────────────────────────────────────────────────────────────────
-    total_aud = filtered["order_value_aud"].dropna().sum()
-    total_usd = filtered["order_value_usd"].dropna().sum()
+# ── Manual Additions (session only — resets on refresh) ──────────────────────────
+if "manual_additions" not in st.session_state:
+    st.session_state.manual_additions = []
+
+st.markdown("<hr>", unsafe_allow_html=True)
+st.markdown(
+    "<h3 style='margin-top:0;margin-bottom:0.5rem'>Manual Additions "
+    "<span style='font-family:Poppins,sans-serif;font-size:0.75rem;font-weight:300;color:#aaa'>"
+    "session only · clears on refresh</span></h3>",
+    unsafe_allow_html=True
+)
+
+# Build a flat lookup of all product variants for the search selectbox
+variant_index = {}
+for _p in products:
+    for _v in _p.get("variants", []):
+        _sku = _v.get("sku", "")
+        _vt  = _v.get("title", "")
+        _label = _p["title"]
+        if _vt and _vt not in ("Default Title", ""):
+            _label += f" — {_vt}"
+        if _sku:
+            _label += f"  ({_sku})"
+        variant_index[_label] = {"sku": _sku, "product": _p["title"]}
+
+add_col1, add_col2, add_col3 = st.columns([4, 1, 1])
+with add_col1:
+    selected_label = st.selectbox(
+        "Product", label_visibility="collapsed",
+        options=[""] + sorted(variant_index.keys()),
+        placeholder="Search product name or SKU…",
+        key="manual_add_select"
+    )
+with add_col2:
+    add_qty = st.number_input("Qty", min_value=1, value=15,
+                               label_visibility="collapsed", key="manual_add_qty")
+with add_col3:
+    add_btn = st.button("➕  Add to Order", use_container_width=True, key="manual_add_btn")
+
+if add_btn and selected_label:
+    variant_info = variant_index.get(selected_label, {})
+    sku = variant_info.get("sku", "")
+    product_name = variant_info.get("product", selected_label)
+    supp = supplier_data.get(sku, {})
+    cost_usd = supp.get("cost_usd")
+    supplier_sku = supp.get("supplier_sku", "")
+    order_value_usd = round(add_qty * cost_usd, 2) if cost_usd else None
+    order_value_aud = round(order_value_usd * usd_to_aud, 2) if order_value_usd else None
+    # Avoid adding the same SKU twice
+    existing_skus = [r["sku"] for r in st.session_state.manual_additions]
+    if sku and sku not in existing_skus:
+        st.session_state.manual_additions.append({
+            "sku": sku, "supplier_sku": supplier_sku,
+            "product": product_name, "rec_order": add_qty,
+            "cost_usd": cost_usd, "order_value_usd": order_value_usd,
+            "order_value_aud": order_value_aud,
+        })
+        st.rerun()
+
+if st.session_state.manual_additions:
+    ma_df = pd.DataFrame([{
+        "Remove": False,
+        "Product": r["product"],
+        "SKU": r["sku"],
+        "Supplier SKU": r["supplier_sku"] or "—",
+        "Qty": r["rec_order"],
+        "Cost (USD)": r["cost_usd"],
+        "Order Value (AUD)": r["order_value_aud"],
+    } for r in st.session_state.manual_additions])
+
+    edited_ma = st.data_editor(
+        ma_df, use_container_width=True, hide_index=True,
+        disabled=["Product", "SKU", "Supplier SKU", "Cost (USD)", "Order Value (AUD)"],
+        column_config={
+            "Remove": st.column_config.CheckboxColumn("✕", width="small"),
+            "Qty":    st.column_config.NumberColumn(format="%d units"),
+            "Cost (USD)":        st.column_config.NumberColumn(format="%.2f"),
+            "Order Value (AUD)": st.column_config.NumberColumn(format="%.2f"),
+        },
+        key="manual_add_table"
+    )
+    to_remove = [i for i, r in edited_ma.iterrows() if r.get("Remove")]
+    if to_remove:
+        st.session_state.manual_additions = [
+            r for i, r in enumerate(st.session_state.manual_additions) if i not in to_remove
+        ]
+        st.rerun()
+else:
+    st.caption("No manual additions yet. Use the search above to add any product.")
+
+# ── Combined Totals + Exports ─────────────────────────────────────────────────────
+calc_order_rows   = filtered[filtered["rec_order"] > 0].to_dict("records") if not filtered.empty else []
+all_order_rows    = calc_order_rows + st.session_state.manual_additions
+
+if all_order_rows:
+    total_usd = sum((r.get("order_value_usd") or 0) for r in all_order_rows)
+    total_aud = sum((r.get("order_value_aud") or 0) for r in all_order_rows)
+    po_number = f"RC-{datetime.now().strftime('%Y%m%d')}-{len(all_order_rows):03d}"
+
     st.markdown("<hr>", unsafe_allow_html=True)
     ta, tb, tc = st.columns([1, 1, 2])
     ta.metric("Total Order (USD)", f"${total_usd:,.0f}")
@@ -351,21 +430,18 @@ else:
 
     st.markdown("<hr>", unsafe_allow_html=True)
 
-    order_rows = filtered[filtered["rec_order"] > 0].to_dict("records")
-    po_number  = f"RC-{datetime.now().strftime('%Y%m%d')}-{len(order_rows):03d}"
-
     def _validate_order_rows(rows):
         return [r.get("sku", "?") for r in rows if not r.get("supplier_sku") or not r.get("cost_usd")]
 
     col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
 
     with col1:
-        bad = _validate_order_rows(order_rows)
+        bad = _validate_order_rows(all_order_rows)
         if bad:
             st.button("Export Order PDF", use_container_width=True, disabled=True,
                       help=f"Missing data for: {', '.join(bad)}")
         else:
-            pdf_bytes = generate_po_pdf(order_rows, usd_to_aud, po_number)
+            pdf_bytes = generate_po_pdf(all_order_rows, usd_to_aud, po_number)
             if st.download_button(
                 "Export Order PDF",
                 data=pdf_bytes,
@@ -376,11 +452,12 @@ else:
                 save_supplier_data(st.session_state.supplier_data)
 
     with col2:
-        order_df = filtered[filtered["rec_order"] > 0][[
-            "sku", "supplier_sku", "product", "rec_order", "cost_usd", "order_value_usd", "order_value_aud"
-        ]].copy()
-        order_df.columns = ["SKU", "Supplier SKU", "Product", "Qty to Order",
-                             "Cost USD", "Order Value USD", "Order Value AUD"]
+        order_df = pd.DataFrame([{
+            "SKU": r.get("sku"), "Supplier SKU": r.get("supplier_sku"),
+            "Product": r.get("product"), "Qty to Order": r.get("rec_order"),
+            "Cost USD": r.get("cost_usd"), "Order Value USD": r.get("order_value_usd"),
+            "Order Value AUD": r.get("order_value_aud"),
+        } for r in all_order_rows])
         st.download_button(
             "Export Order CSV",
             data=order_df.to_csv(index=False).encode(),
@@ -390,14 +467,14 @@ else:
         )
 
     with col3:
-        bad = _validate_order_rows(order_rows)
+        bad = _validate_order_rows(all_order_rows)
         if bad:
             st.button("Send to ShipHero", use_container_width=True, disabled=True,
                       help=f"Missing data for: {', '.join(bad)}")
         else:
             if st.button("Send to ShipHero", use_container_width=True):
                 with st.spinner("Creating PO in ShipHero…"):
-                    result = push_po_to_shiphero(order_rows, po_number)
+                    result = push_po_to_shiphero(all_order_rows, po_number)
                 if result["success"]:
                     st.success(f"PO {result['po_number']} created in ShipHero")
                 else:
