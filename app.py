@@ -386,23 +386,51 @@ if st.session_state.manual_additions:
         "Remove": False,
         "Product": r["product"],
         "SKU": r["sku"],
-        "Supplier SKU": r["supplier_sku"] or "—",
+        "Supplier SKU": r.get("supplier_sku") or "",
         "Qty": r["rec_order"],
-        "Cost (USD)": r["cost_usd"],
-        "Order Value (AUD)": r["order_value_aud"],
+        "Cost (USD)": r.get("cost_usd"),
+        "Order Value (AUD)": r.get("order_value_aud"),
     } for r in st.session_state.manual_additions])
 
     edited_ma = st.data_editor(
         ma_df, use_container_width=True, hide_index=True,
-        disabled=["Product", "SKU", "Supplier SKU", "Cost (USD)", "Order Value (AUD)"],
+        disabled=["Product", "SKU", "Order Value (AUD)"],
         column_config={
-            "Remove": st.column_config.CheckboxColumn("✕", width="small"),
-            "Qty":    st.column_config.NumberColumn(format="%d units"),
-            "Cost (USD)":        st.column_config.NumberColumn(format="%.2f"),
+            "Remove":       st.column_config.CheckboxColumn("✕", width="small"),
+            "Qty":          st.column_config.NumberColumn(format="%d units"),
+            "Supplier SKU": st.column_config.TextColumn(help="Watersino JD- code"),
+            "Cost (USD)":   st.column_config.NumberColumn(format="%.2f", min_value=0.0, step=0.5,
+                                                           help="Unit cost in USD — type to edit"),
             "Order Value (AUD)": st.column_config.NumberColumn(format="%.2f"),
         },
         key="manual_add_table"
     )
+
+    # Merge edits back into manual_additions and supplier_data
+    changed_ma = False
+    for i, row in edited_ma.iterrows():
+        if i >= len(st.session_state.manual_additions):
+            continue
+        entry = st.session_state.manual_additions[i]
+        sku = entry["sku"]
+
+        new_supp_sku = str(row.get("Supplier SKU") or "").strip()
+        if new_supp_sku:
+            entry["supplier_sku"] = new_supp_sku
+            st.session_state.supplier_data.setdefault(sku, {})["supplier_sku"] = new_supp_sku
+            changed_ma = True
+
+        try:
+            new_cost = float(row.get("Cost (USD)") or 0)
+            if new_cost > 0:
+                entry["cost_usd"] = round(new_cost, 2)
+                entry["order_value_usd"] = round(entry["rec_order"] * new_cost, 2)
+                entry["order_value_aud"] = round(entry["order_value_usd"] * usd_to_aud, 2)
+                st.session_state.supplier_data.setdefault(sku, {})["cost_usd"] = round(new_cost, 2)
+                changed_ma = True
+        except (TypeError, ValueError):
+            pass
+
     to_remove = [i for i, r in edited_ma.iterrows() if r.get("Remove")]
     if to_remove:
         st.session_state.manual_additions = [
