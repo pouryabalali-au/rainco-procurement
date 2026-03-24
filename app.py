@@ -271,16 +271,15 @@ else:
         "days_cover", "rec_order", "cost_usd", "order_value_aud"
     ]].copy()
 
-    display.insert(0, "exclude", False)   # checkbox column — all False (excluded rows never appear here)
-
     display["status"]     = display["status"].map(STATUS_EMOJI)
     display["avg_daily"]  = display["avg_daily"].apply(lambda x: round(x, 2))
     display["days_cover"] = display["days_cover"].apply(lambda x: x if x < 999 else None)
+    display["exclude"]    = False   # checkbox — always False here; excluded rows are filtered out before this
 
     display.columns = [
-        "Exclude", "", "Product", "SKU", "Supplier SKU",
+        "", "Product", "SKU", "Supplier SKU",
         "On Hand", "On Order", "Sold 90d", "Avg/Day",
-        "Days Cover", "Rec. Order", "Cost (USD)", "Order Value (AUD)"
+        "Days Cover", "Rec. Order", "Cost (USD)", "Order Value (AUD)", "Exclude"
     ]
 
     read_only_cols = ["", "Product", "SKU", "On Hand", "On Order",
@@ -293,17 +292,19 @@ else:
         disabled=read_only_cols,
         column_config={
             "Exclude":          st.column_config.CheckboxColumn(
-                                    "✕", help="Exclude this SKU — it will be hidden from the dashboard. "
-                                    "You can restore it from the Exclusion List below.",
-                                    width="small"),
+                                    "✕", help="Exclude — hides this SKU from the dashboard. "
+                                    "Restore it any time from the Exclusion List below.",
+                                    width="small", default=False),
             "Rec. Order":       st.column_config.NumberColumn(format="%d units"),
             "On Hand":          st.column_config.NumberColumn(format="%d"),
             "On Order":         st.column_config.NumberColumn(format="%d"),
             "Sold 90d":         st.column_config.NumberColumn(format="%d"),
             "Avg/Day":          st.column_config.NumberColumn(format="%.2f"),
             "Days Cover":       st.column_config.NumberColumn(format="%d"),
-            "Cost (USD)":       st.column_config.NumberColumn(format="$%.2f", min_value=0.0, step=0.5),
-            "Order Value (AUD)":st.column_config.NumberColumn(format="$%.2f"),
+            "Cost (USD)":       st.column_config.NumberColumn(
+                                    "Cost (USD)", help="Unit cost in USD — type to edit",
+                                    min_value=0.0, step=0.5, format="%.2f"),
+            "Order Value (AUD)":st.column_config.NumberColumn(format="%.2f"),
             "Supplier SKU":     st.column_config.TextColumn(help="Watersino JD- code"),
         },
         key="order_table"
@@ -324,13 +325,16 @@ else:
 
         # Supplier SKU edit
         new_supp_sku = str(row.get("Supplier SKU") or "").strip()
-        if new_supp_sku and new_supp_sku != entry.get("supplier_sku", ""):
+        if new_supp_sku:
             entry["supplier_sku"] = new_supp_sku
 
         # Cost edit
-        new_cost = row.get("Cost (USD)")
-        if new_cost and float(new_cost) > 0 and float(new_cost) != entry.get("cost_usd", 0):
-            entry["cost_usd"] = round(float(new_cost), 2)
+        try:
+            new_cost = float(row.get("Cost (USD)") or 0)
+            if new_cost > 0:
+                entry["cost_usd"] = round(new_cost, 2)
+        except (TypeError, ValueError):
+            pass
 
     if newly_excluded:
         st.rerun()  # immediately remove excluded rows from view
