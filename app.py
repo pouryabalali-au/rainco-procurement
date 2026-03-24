@@ -5,7 +5,8 @@ import os
 from datetime import datetime
 from shopify_api import (
     get_products, get_inventory_levels, get_orders_last_90_days,
-    get_purchase_orders, build_sales_by_variant, build_on_order_by_sku
+    get_purchase_orders, build_sales_by_variant, build_on_order_by_sku,
+    get_inventory_costs, get_usd_to_aud_rate
 )
 from calculations import calculate_procurement
 
@@ -174,24 +175,26 @@ st.markdown("""
 # ── Load Data ────────────────────────────────────────────────────────────────────
 @st.cache_data(ttl=3600, show_spinner=False)
 def fetch_all_data():
-    products  = get_products()
-    inventory = get_inventory_levels()
-    orders    = get_orders_last_90_days()
-    pos       = get_purchase_orders()
-    sales     = build_sales_by_variant(orders)
-    on_order  = build_on_order_by_sku(pos)
+    products   = get_products()
+    inventory  = get_inventory_levels()
+    orders     = get_orders_last_90_days()
+    pos        = get_purchase_orders()
+    sales      = build_sales_by_variant(orders)
+    on_order   = build_on_order_by_sku(pos)
+    costs      = get_inventory_costs(products)
+    usd_to_aud = get_usd_to_aud_rate()
     fetched_at = datetime.now().strftime("%d %b %Y, %H:%M")
-    return products, inventory, sales, on_order, fetched_at
+    return products, inventory, sales, on_order, costs, usd_to_aud, fetched_at
 
 with st.spinner("Loading Shopify data…"):
-    products, inventory, sales, on_order, fetched_at = fetch_all_data()
+    products, inventory, sales, on_order, costs, usd_to_aud, fetched_at = fetch_all_data()
 
 import calculations
 calculations.LEAD_TIME_DAYS    = lead_time
 calculations.SAFETY_STOCK_DAYS = safety
 calculations.TARGET_COVER_DAYS = lead_time + safety
 
-rows = calculate_procurement(products, inventory, sales, on_order, global_moq)
+rows = calculate_procurement(products, inventory, sales, on_order, global_moq, costs, usd_to_aud)
 df   = pd.DataFrame(rows)
 
 # ── Metric Cards ─────────────────────────────────────────────────────────────────
@@ -235,30 +238,36 @@ if filtered.empty:
     st.info("No items match the current filters.")
 else:
     display = filtered[[
-        "status", "product", "variant", "sku", "type",
+        "status", "product", "sku", "vendor",
         "on_hand", "on_order", "sold_90d", "avg_daily",
-        "days_cover", "target_stock", "rec_order"
+        "days_cover", "rec_order", "cost_usd", "order_value_aud"
     ]].copy()
 
     display["status"]    = display["status"].map(STATUS_EMOJI)
     display["avg_daily"] = display["avg_daily"].apply(lambda x: f"{x:.2f}")
     display["days_cover"] = display["days_cover"].apply(lambda x: x if x < 999 else "—")
+    display["cost_usd"]  = display["cost_usd"].apply(lambda x: f"${x:.2f}" if x else "—")
+    display["order_value_aud"] = display["order_value_aud"].apply(lambda x: f"${x:,.2f}" if x else "—")
 
     display.columns = [
-        "", "Product", "Variant", "SKU", "Type",
+        "", "Product", "SKU", "Supplier",
         "On Hand", "On Order", "Sold 90d", "Avg/Day",
-        "Days Cover", "Target Stock", "Rec. Order"
+        "Days Cover", "Rec. Order", "Cost (USD)", "Order Value (AUD)"
     ]
 
-    st.dataframe(
-        display,
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            "Rec. Order": st.column_config.NumberColumn(format="%d units"),
-            "Target Stock": st.column_config.NumberColumn(format="%d units"),
-        }
+    st.dataframe(display, use_container_width=True, hide_index=True,
+        column_config={"Rec. Order": st.column_config.NumberColumn(format="%d units")}
     )
+
+    # ── AUD Total ──────────────────────────────────────────────────────────────
+    total_aud = filtered["order_value_aud"].dropna().sum()
+    total_usd = filtered["order_value_usd"].dropna().sum()
+    st.markdown("<hr>", unsafe_allow_html=True)
+    ta, tb, tc = st.columns([1, 1, 2])
+    ta.metric("Total Order (USD)", f"${total_usd:,.0f}")
+    tb.metric(f"Total Order (AUD) @ {usd_to_aud:.4f}", f"${total_aud:,.0f}")
+    with tc:
+        st.caption(f"Live exchange rate: 1 USD = {usd_to_aud:.4f} AUD")
 
     st.markdown("<hr>", unsafe_allow_html=True)
     col1, col2, _ = st.columns([1, 1, 3])
@@ -271,11 +280,10 @@ else:
             use_container_width=True
         )
     with col2:
-        # Export only what to order, grouped nicely
         order_df = filtered[filtered["rec_order"] > 0][[
-            "sku", "product", "variant", "type", "rec_order"
+            "sku", "product", "vendor", "rec_order", "cost_usd", "order_value_usd", "order_value_aud"
         ]].copy()
-        order_df.columns = ["SKU", "Product", "Variant", "Type", "Qty to Order"]
+        order_df.columns = ["SKU", "Product", "Supplier", "Qty to Order", "Cost USD", "Order Value USD", "Order Value AUD"]
         st.download_button(
             "Export Order",
             data=order_df.to_csv(index=False).encode(),

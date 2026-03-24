@@ -4,13 +4,16 @@ TARGET_COVER_DAYS = LEAD_TIME_DAYS + SAFETY_STOCK_DAYS  # 150 days
 LOOKBACK_DAYS = 90
 GLOBAL_MOQ = 15
 
-def calculate_procurement(products, inventory_by_inv_id, sales_by_variant_id, on_order_by_sku, global_moq=None):
+def calculate_procurement(products, inventory_by_inv_id, sales_by_variant_id, on_order_by_sku, global_moq=None, costs_usd=None, usd_to_aud=1.58):
     """
     Build the full procurement table.
     Returns list of dicts, one per variant.
     """
     if global_moq is None:
         global_moq = GLOBAL_MOQ
+
+    if costs_usd is None:
+        costs_usd = {}
 
     rows = []
     for product in products:
@@ -22,6 +25,7 @@ def calculate_procurement(products, inventory_by_inv_id, sales_by_variant_id, on
             option = variant.get("title", "")
             product_type = product.get("product_type", "")
             tags = product.get("tags", "")
+            vendor = product.get("vendor", "")
 
             # Stock on hand at Tullamarine
             on_hand = inventory_by_inv_id.get(inv_item_id, 0) or 0
@@ -58,14 +62,17 @@ def calculate_procurement(products, inventory_by_inv_id, sales_by_variant_id, on
             else:
                 status = "ok"
 
+            cost_usd = costs_usd.get(inv_item_id)
+            cost_aud = round(cost_usd * usd_to_aud, 2) if cost_usd else None
+            order_value_usd = round(rec_order * cost_usd, 2) if cost_usd and rec_order > 0 else None
+            order_value_aud = round(rec_order * cost_aud, 2) if cost_aud and rec_order > 0 else None
+
             rows.append({
                 "product_id": product["id"],
                 "variant_id": variant_id,
                 "sku": sku,
                 "product": title,
-                "variant": option,
-                "type": product_type,
-                "tags": tags,
+                "vendor": vendor,
                 "on_hand": on_hand,
                 "on_order": on_order,
                 "sold_90d": sold_90d,
@@ -75,6 +82,10 @@ def calculate_procurement(products, inventory_by_inv_id, sales_by_variant_id, on
                 "rec_order": rec_order,
                 "moq": moq,
                 "status": status,
+                "cost_usd": cost_usd,
+                "cost_aud": cost_aud,
+                "order_value_usd": order_value_usd,
+                "order_value_aud": order_value_aud,
             })
 
     return sorted(rows, key=lambda x: (

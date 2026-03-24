@@ -28,13 +28,43 @@ def _base_url():
 
 def get_products():
     products = []
-    url = f"{_base_url()}/products.json?limit=250&fields=id,title,variants,product_type,tags,status"
+    url = f"{_base_url()}/products.json?limit=250&fields=id,title,vendor,variants,product_type,tags,status"
     while url:
         r = requests.get(url, headers=_headers())
         products.extend(r.json().get("products", []))
         link = r.headers.get("Link", "")
         url = next((p.split(";")[0].strip().strip("<>") for p in link.split(",") if 'rel="next"' in p), None)
     return products
+
+def get_inventory_costs(products):
+    """Fetch cost price (USD) per inventory_item_id in batches of 100"""
+    inv_ids = [
+        v["inventory_item_id"]
+        for p in products
+        for v in p.get("variants", [])
+        if v.get("inventory_item_id")
+    ]
+    costs = {}
+    for i in range(0, len(inv_ids), 100):
+        batch = inv_ids[i:i+100]
+        ids_str = ",".join(str(x) for x in batch)
+        r = requests.get(
+            f"{_base_url()}/inventory_items.json?ids={ids_str}&limit=100",
+            headers=_headers()
+        )
+        for item in r.json().get("inventory_items", []):
+            cost = item.get("cost")
+            if cost is not None:
+                costs[item["id"]] = float(cost)
+    return costs  # {inventory_item_id: cost_usd}
+
+def get_usd_to_aud_rate():
+    """Fetch live USD→AUD exchange rate"""
+    try:
+        r = requests.get("https://api.exchangerate-api.com/v4/latest/USD", timeout=5)
+        return r.json()["rates"]["AUD"]
+    except Exception:
+        return 1.58  # fallback rate
 
 def get_inventory_levels():
     """Get inventory levels at Tullamarine only"""
