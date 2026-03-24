@@ -5,27 +5,32 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-try:
-    import streamlit as st
-    STORE = st.secrets.get("SHOPIFY_STORE") or os.getenv("SHOPIFY_STORE")
-    TOKEN = st.secrets.get("SHOPIFY_ACCESS_TOKEN") or os.getenv("SHOPIFY_ACCESS_TOKEN")
-except Exception:
-    STORE = os.getenv("SHOPIFY_STORE")
-    TOKEN = os.getenv("SHOPIFY_ACCESS_TOKEN")
 API_VERSION = "2024-01"
-BASE_URL = f"https://{STORE}/admin/api/{API_VERSION}"
 TULLAMARINE_ID = 78206304573
 
-HEADERS = {
-    "X-Shopify-Access-Token": TOKEN,
-    "Content-Type": "application/json"
-}
+def _get_creds():
+    try:
+        import streamlit as st
+        store = st.secrets["SHOPIFY_STORE"]
+        token = st.secrets["SHOPIFY_ACCESS_TOKEN"]
+    except Exception:
+        store = os.getenv("SHOPIFY_STORE")
+        token = os.getenv("SHOPIFY_ACCESS_TOKEN")
+    return store, token
+
+def _headers():
+    _, token = _get_creds()
+    return {"X-Shopify-Access-Token": token, "Content-Type": "application/json"}
+
+def _base_url():
+    store, _ = _get_creds()
+    return f"https://{store}/admin/api/{API_VERSION}"
 
 def get_products():
     products = []
-    url = f"{BASE_URL}/products.json?limit=250&fields=id,title,variants,product_type,tags,status"
+    url = f"{_base_url()}/products.json?limit=250&fields=id,title,variants,product_type,tags,status"
     while url:
-        r = requests.get(url, headers=HEADERS)
+        r = requests.get(url, headers=_headers())
         products.extend(r.json().get("products", []))
         link = r.headers.get("Link", "")
         url = next((p.split(";")[0].strip().strip("<>") for p in link.split(",") if 'rel="next"' in p), None)
@@ -34,71 +39,47 @@ def get_products():
 def get_inventory_levels():
     """Get inventory levels at Tullamarine only"""
     all_levels = {}
-    url = f"{BASE_URL}/inventory_levels.json?location_ids={TULLAMARINE_ID}&limit=250"
+    url = f"{_base_url()}/inventory_levels.json?location_ids={TULLAMARINE_ID}&limit=250"
     while url:
-        r = requests.get(url, headers=HEADERS)
+        r = requests.get(url, headers=_headers())
         for level in r.json().get("inventory_levels", []):
             inv_id = level["inventory_item_id"]
             qty = level.get("available", 0) or 0
             all_levels[inv_id] = qty
         link = r.headers.get("Link", "")
         url = next((p.split(";")[0].strip().strip("<>") for p in link.split(",") if 'rel="next"' in p), None)
-    return all_levels  # {inventory_item_id: qty}
+    return all_levels
 
 def get_orders_last_90_days():
     since = (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%dT00:00:00Z")
     orders = []
-    url = f"{BASE_URL}/orders.json?status=any&created_at_min={since}&limit=250&fields=id,line_items,created_at,financial_status,cancel_reason"
+    url = f"{_base_url()}/orders.json?status=any&created_at_min={since}&limit=250&fields=id,line_items,created_at,financial_status,cancel_reason"
     while url:
-        r = requests.get(url, headers=HEADERS)
+        r = requests.get(url, headers=_headers())
         orders.extend(r.json().get("orders", []))
         link = r.headers.get("Link", "")
         url = next((p.split(";")[0].strip().strip("<>") for p in link.split(",") if 'rel="next"' in p), None)
     return orders
 
 def get_purchase_orders():
-    """Get open purchase orders - try multiple endpoints"""
-    # Try GraphQL inventoryOrder
-    query = """
-    {
-      purchaseOrders: draftOrders(first: 50, query: "status:open") {
-        edges {
-          node {
-            id
-            name
-            lineItems(first: 100) {
-              edges {
-                node {
-                  variant { id sku }
-                  quantity
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    """
-    # Try REST - Inventory Orders (the actual PO feature)
+    """Get open purchase orders"""
+    store, _ = _get_creds()
     r = requests.get(
-        f"https://{STORE}/admin/api/{API_VERSION}/inventory_orders.json?status=open&limit=250",
-        headers=HEADERS
+        f"https://{store}/admin/api/{API_VERSION}/inventory_orders.json?status=open&limit=250",
+        headers=_headers()
     )
     if r.status_code == 200:
         pos = r.json().get("inventory_orders", [])
         if pos:
             return pos
-
-    # Try newer API version for purchase orders
     r2 = requests.get(
-        f"https://{STORE}/admin/api/2024-04/purchase_orders.json?status=open&limit=250",
-        headers=HEADERS
+        f"https://{store}/admin/api/2024-04/purchase_orders.json?status=open&limit=250",
+        headers=_headers()
     )
     if r2.status_code == 200:
         pos2 = r2.json().get("purchase_orders", [])
         if pos2:
             return pos2
-
     return []
 
 def build_sales_by_variant(orders):
