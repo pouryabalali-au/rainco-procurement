@@ -91,26 +91,56 @@ def get_orders_last_90_days():
         url = next((p.split(";")[0].strip().strip("<>") for p in link.split(",") if 'rel="next"' in p), None)
     return orders
 
+def _shiphero_token():
+    try:
+        import streamlit as st
+        key    = st.secrets["SHIPHERO_KEY"]
+        secret = st.secrets["SHIPHERO_SECRET"]
+        email  = st.secrets["SHIPHERO_EMAIL"]
+        pw     = st.secrets["SHIPHERO_PASSWORD"]
+    except Exception:
+        key    = os.getenv("SHIPHERO_KEY")
+        secret = os.getenv("SHIPHERO_SECRET")
+        email  = os.getenv("SHIPHERO_EMAIL")
+        pw     = os.getenv("SHIPHERO_PASSWORD")
+    r = requests.post(
+        "https://public-api.shiphero.com/auth/token",
+        json={"grant_type": "password", "username": email, "password": pw,
+              "client_id": key, "client_secret": secret}
+    )
+    return r.json().get("access_token")
+
 def get_purchase_orders():
-    """Get open purchase orders"""
-    store, _ = _get_creds()
-    r = requests.get(
-        f"https://{store}/admin/api/{API_VERSION}/inventory_orders.json?status=open&limit=250",
-        headers=_headers()
-    )
-    if r.status_code == 200:
-        pos = r.json().get("inventory_orders", [])
-        if pos:
-            return pos
-    r2 = requests.get(
-        f"https://{store}/admin/api/2024-04/purchase_orders.json?status=open&limit=250",
-        headers=_headers()
-    )
-    if r2.status_code == 200:
-        pos2 = r2.json().get("purchase_orders", [])
-        if pos2:
-            return pos2
-    return []
+    """Get outstanding on-order quantities per SKU from ShipHero active POs"""
+    try:
+        token = _shiphero_token()
+        if not token:
+            return []
+        sh_headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+        GQL = "https://public-api.shiphero.com/graphql"
+
+        # Step 1: get PO headers (cheap query)
+        r = requests.post(GQL, headers=sh_headers, json={"query":
+            "{ purchase_orders(analyze: false) { data { edges { node { id po_number fulfillment_status } } } } }"
+        })
+        edges = r.json().get("data", {}).get("purchase_orders", {}).get("data", {}).get("edges", [])
+        active = [e["node"] for e in edges
+                  if e["node"].get("fulfillment_status", "").lower() not in ["canceled", "cancelled"]]
+
+        # Step 2: get line items per active PO
+        all_pos = []
+        for po in active:
+            q = '''{ purchase_order(id: "%s", analyze: false) { data {
+                po_number
+                line_items { edges { node { sku quantity quantity_received } } }
+            } } }''' % po["id"]
+            r2 = requests.post(GQL, headers=sh_headers, json={"query": q})
+            data = r2.json().get("data", {}).get("purchase_order", {}).get("data")
+            if data:
+                all_pos.append(data)
+        return all_pos
+    except Exception:
+        return []
 
 def build_sales_by_variant(orders):
     """Count units sold per variant_id in last 90 days, excluding cancelled/refunded"""
@@ -126,13 +156,15 @@ def build_sales_by_variant(orders):
     return sales
 
 def build_on_order_by_sku(purchase_orders):
-    """Count outstanding units per SKU from open POs"""
+    """Count outstanding units per SKU from ShipHero active POs"""
     on_order = {}
     for po in purchase_orders:
-        for item in po.get("line_items", []):
-            sku = item.get("variant_sku") or item.get("sku", "")
-            ordered = item.get("quantity", 0)
-            received = item.get("received_quantity", 0)
+        items = po.get("line_items", {}).get("edges", [])
+        for edge in items:
+            item = edge.get("node", edge)
+            sku = item.get("sku", "")
+            ordered = item.get("quantity", 0) or 0
+            received = item.get("quantity_received", 0) or 0
             outstanding = ordered - received
             if sku and outstanding > 0:
                 on_order[sku] = on_order.get(sku, 0) + outstanding
