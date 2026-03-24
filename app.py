@@ -238,7 +238,7 @@ if filtered.empty:
     st.info("No items match the current filters.")
 else:
     display = filtered[[
-        "status", "product", "sku", "vendor",
+        "status", "product", "sku",
         "on_hand", "on_order", "sold_90d", "avg_daily",
         "days_cover", "rec_order", "cost_usd", "order_value_aud"
     ]].copy()
@@ -250,7 +250,7 @@ else:
     display["order_value_aud"] = display["order_value_aud"].apply(lambda x: f"${x:,.2f}" if x else "—")
 
     display.columns = [
-        "", "Product", "SKU", "Supplier",
+        "", "Product", "SKU",
         "On Hand", "On Order", "Sold 90d", "Avg/Day",
         "Days Cover", "Rec. Order", "Cost (USD)", "Order Value (AUD)"
     ]
