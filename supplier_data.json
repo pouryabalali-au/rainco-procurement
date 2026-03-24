@@ -835,7 +835,8 @@
     "cost_usd": 206.53
   },
   "MB00005": {
-    "cost_usd": 107.1
+    "cost_usd": 107.1,
+    "excluded": true
   },
   "MB00024": {
     "cost_usd": 125.0
