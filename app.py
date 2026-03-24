@@ -18,6 +18,7 @@ st.set_page_config(
 
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <style>
   html, body, [class*="css"], .stApp {
     font-family: 'Poppins', sans-serif !important;
